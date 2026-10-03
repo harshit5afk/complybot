@@ -1,0 +1,15 @@
+{
+  "_note": "SAMPLE/ILLUSTRATIVE DATA for hackathon demo purposes. Replace with the actual BIS-recognized laboratory directory before any real deployment.",
+  "labs": [
+    {"name": "National Test House (NTH) - Kolkata", "region": "East", "city": "Kolkata", "categories": ["electricals", "toys", "general"]},
+    {"name": "National Test House (NTH) - Mumbai", "region": "West", "city": "Mumbai", "categories": ["electricals", "toys", "general"]},
+    {"name": "Shriram Institute for Industrial Research", "region": "North", "city": "Delhi", "categories": ["food", "chemicals", "water"]},
+    {"name": "SGS India Pvt Ltd - Gurugram", "region": "North", "city": "Gurugram", "categories": ["toys", "electricals", "textiles"]},
+    {"name": "Intertek India - Bengaluru", "region": "South", "city": "Bengaluru", "categories": ["electricals", "LED", "IT equipment"]},
+    {"name": "Central Food Technological Research Institute (CFTRI)", "region": "South", "city": "Mysuru", "categories": ["food", "water", "packaged food"]},
+    {"name": "Electronics Regional Test Laboratory (ERTL)", "region": "West", "city": "Mumbai", "categories": ["electricals", "LED", "electronics"]},
+    {"name": "BIS Regional Laboratory - Chennai", "region": "South", "city": "Chennai", "categories": ["general", "toys", "textiles"]},
+    {"name": "BIS Regional Laboratory - Guwahati", "region": "Northeast", "city": "Guwahati", "categories": ["general", "food"]},
+    {"name": "Quality Council of India Approved Lab - Pune", "region": "West", "city": "Pune", "categories": ["electricals", "toys"]}
+  ]
+}

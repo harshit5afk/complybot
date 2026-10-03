@@ -1,0 +1,45 @@
+{
+  "schemes": [
+    {
+      "scheme_name": "ISI Mark (Product Certification Scheme)",
+      "applies_to": ["toys", "packaged drinking water", "cement", "household pressure cookers", "LPG cylinders"],
+      "description": "A continuing license scheme where BIS grants permission to use the ISI mark after successful testing and factory inspection, followed by periodic surveillance for the life of the license.",
+      "process_steps": [
+        "Submit application to BIS with product samples and factory details",
+        "Product testing at a BIS-recognized laboratory",
+        "Factory inspection to verify production consistency",
+        "License grant and ISI mark usage permission",
+        "Ongoing periodic surveillance testing"
+      ],
+      "typical_timeline": "2-4 months for first-time applicants, depending on product category and lab availability",
+      "source_url": "https://www.bis.gov.in/product-certification/product-certification-process/?lang=en"
+    },
+    {
+      "scheme_name": "Compulsory Registration Scheme (CRS)",
+      "applies_to": ["LED lamps", "mobile chargers", "power banks", "IT equipment"],
+      "description": "A one-time registration scheme (renewed periodically) based on lab test reports, used mainly for electronics and IT goods. Does not require an ISI mark; instead uses a registration number (R-Number) displayed on the product.",
+      "process_steps": [
+        "Get product tested at a BIS-recognized or approved laboratory",
+        "Submit test report and product details via the BIS CRS online portal",
+        "Receive registration number upon verification",
+        "Display registration number and CRS marking on product and packaging",
+        "Renew registration periodically (commonly every 2 years)"
+      ],
+      "typical_timeline": "4-8 weeks, largely dependent on lab testing turnaround",
+      "source_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/scheme-ii-registration-scheme/?lang=en"
+    },
+    {
+      "scheme_name": "Hallmarking Scheme",
+      "applies_to": ["gold jewellery", "silver jewellery", "gold artefacts"],
+      "description": "A purity certification scheme for precious metal jewellery, requiring jewellers to register with BIS and get items hallmarked at a BIS-recognized Assaying & Hallmarking Centre (AHC).",
+      "process_steps": [
+        "Jeweller registers with BIS (one-time registration, now largely mandatory for jewellers selling hallmarked jewellery)",
+        "Jewellery items are sent to a BIS-recognized Assaying & Hallmarking Centre",
+        "Items are tested for purity and marked with the HUID (Hallmark Unique Identification) number",
+        "Hallmarked item carries the BIS mark, purity grade, AHC mark, and unique HUID number"
+      ],
+      "typical_timeline": "Registration: 15-30 days. Hallmarking of individual batches: typically 1-2 days at the AHC",
+      "source_url": "https://www.bis.gov.in/hallmarking/"
+    }
+  ]
+}

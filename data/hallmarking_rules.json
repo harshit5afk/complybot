@@ -1,0 +1,25 @@
+{
+  "purity_grades_gold": [
+    {"karat": "24K", "fineness": "999", "description": "Highest purity, typically used for coins/bars, too soft for most jewellery"},
+    {"karat": "22K", "fineness": "916", "description": "Most common for traditional Indian jewellery"},
+    {"karat": "20K", "fineness": "833", "description": "Less common, sometimes used for certain jewellery designs"},
+    {"karat": "18K", "fineness": "750", "description": "Common for diamond-studded and modern jewellery designs"},
+    {"karat": "14K", "fineness": "585", "description": "Common for everyday-wear lighter jewellery"}
+  ],
+  "purity_grades_silver": [
+    {"grade": "999", "description": "Fine silver, highest purity"},
+    {"grade": "970", "description": "High purity silver"},
+    {"grade": "925", "description": "Sterling silver, most common for jewellery"},
+    {"grade": "835", "description": "Lower purity, used in some artefacts"},
+    {"grade": "800", "description": "Lower purity silver grade"}
+  ],
+  "huid_explanation": "HUID stands for Hallmark Unique Identification. It is a 6-character alphanumeric code engraved on each piece of hallmarked jewellery, unique to that specific item. Consumers can verify a HUID using the BIS CARE app or the BIS Care website by entering the HUID number to confirm the jewellery's purity, hallmarking centre, and registration details.",
+  "how_to_verify": [
+    "Look for the BIS hallmark logo (a triangle-like mark) on the jewellery",
+    "Check for the purity grade mark (e.g., 916 for 22K gold)",
+    "Check for the Assaying & Hallmarking Centre's identification mark",
+    "Check for the 6-character HUID code",
+    "Enter the HUID on the BIS CARE app or BIS website to verify authenticity and details"
+  ],
+  "jeweller_registration_note": "As per BIS regulations, jewellers selling hallmarked jewellery must be registered with BIS. Consumers can check if a jeweller is BIS-registered via the BIS website's registered jeweller search."
+}
