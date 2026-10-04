@@ -6,26 +6,98 @@ guidance, hallmarking, lab recommendations, and multilingual (EN/HI) consumer an
 industry queries — running entirely **locally** using your GPU via Ollama, so there
 are no API costs and no internet dependency during your demo.
 
-## Architecture
+## 🏗️ System Architecture & Workflow
 
+```mermaid
+flowchart TD
+    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
+    classDef api fill:#0f172a,stroke:#818cf8,stroke-width:2px,color:#f8fafc
+    classDef router fill:#312e81,stroke:#a5b4fc,stroke-width:2px,color:#f8fafc
+    classDef agent fill:#1e1b4b,stroke:#c084fc,stroke-width:2px,color:#f8fafc
+    classDef db fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#f8fafc
+    classDef llm fill:#701a75,stroke:#f472b6,stroke-width:2px,color:#f8fafc
+    classDef output fill:#14532d,stroke:#4ade80,stroke-width:2px,color:#f8fafc
+
+    User(["👤 User (Consumer / Manufacturer)"]):::client
+    UI["🖥️ Web Chat Interface<br/>(English / हिन्दी)"]:::client
+
+    subgraph Backend ["⚡ FastAPI Application (Port 8000)"]
+        Endpoint["POST /chat"]:::api
+        Router["🧭 Router Agent<br/>• Keyword Rules Engine<br/>• LLM Fallback Classifier<br/>• Devanagari Language Detector"]:::router
+
+        subgraph Agents ["🤖 Specialized Multi-Agent Swarm"]
+            Retriever["🔍 Retriever Agent<br/>(RAG Pipeline)"]:::agent
+            CertAgent["📜 Certification Agent<br/>(ISI Mark / CRS / FMCS)"]:::agent
+            ConsumerAgent["🛡️ Consumer Query Agent<br/>(Grievances & BIS CARE)"]:::agent
+            HallmarkAgent["💎 Hallmarking Agent<br/>(Purity & HUID Rules)"]:::agent
+            LabAgent["🧪 Lab Finder Agent<br/>(Directory Lookup)"]:::agent
+        end
+
+        Translator["🌐 Translation Layer<br/>(English ↔ Hindi LLM)"]:::router
+        Formatter["🏷️ Response Formatter<br/>(Agent Badge + Citations)"]:::output
+    end
+
+    subgraph Knowledge ["📚 Knowledge & Data Layer"]
+        Chroma[("🗄️ ChromaDB<br/>Vector Store (19 Chunks)")]:::db
+        CertJSON[("📄 certification_schemes.json")]:::db
+        HallmarkJSON[("📄 hallmarking_rules.json")]:::db
+        LabsJSON[("📄 labs.json")]:::db
+    end
+
+    subgraph LocalAI ["🦙 Local Ollama Engine (GPU / 100% Offline)"]
+        EmbedModel["🔤 nomic-embed-text<br/>(Vector Embeddings)"]:::llm
+        ChatModel["🧠 qwen2.5:7b-instruct<br/>(Inference & Synthesis)"]:::llm
+    end
+
+    %% Pipeline Connections
+    User -->|"Query & Language"| UI
+    UI -->|"HTTP Request"| Endpoint
+    Endpoint --> Router
+
+    Router -->|"standards"| Retriever
+    Router -->|"certification"| CertAgent
+    Router -->|"consumer"| ConsumerAgent
+    Router -->|"hallmarking"| HallmarkAgent
+    Router -->|"lab_finder"| LabAgent
+
+    %% Knowledge & LLM connections
+    Retriever <-->|"Embed Query"| EmbedModel
+    Retriever <-->|"Similarity Search"| Chroma
+    Retriever -->|"Context + Prompt"| ChatModel
+
+    CertAgent <-->|"Match Scheme"| CertJSON
+    CertAgent -->|"Explain Steps"| ChatModel
+
+    ConsumerAgent -->|"Plain Guidance Prompt"| ChatModel
+
+    HallmarkAgent <-->|"Instant Rule Lookup (0 LLM Latency)"| HallmarkJSON
+
+    LabAgent <-->|"Filter Category / City"| LabsJSON
+
+    %% Translator & Formatter
+    Retriever --> Translator
+    CertAgent --> Translator
+    ConsumerAgent --> Translator
+    HallmarkAgent --> Translator
+    LabAgent --> Translator
+
+    Translator -.->|"Hindi Prompt (if required)"| ChatModel
+    Translator --> Formatter
+    Formatter -->|"JSON Response"| UI
 ```
-User query
-   │
-   ▼
-Router Agent (keyword rules + LLM fallback) ── detects domain + language
-   │
-   ├── Retriever Agent ────────── RAG search over standards corpus (ChromaDB)
-   ├── Certification Agent ────── scheme + process lookup, explained by LLM
-   ├── Consumer Query Agent ───── plain-language general guidance
-   ├── Hallmarking Agent ──────── rule-based purity/HUID lookup (no LLM needed)
-   └── Lab Finder Agent ───────── rule-based lab directory lookup
-   │
-   ▼
-Translator (LLM) ── converts answer to Hindi if requested
-   │
-   ▼
-Response with agent badge + citations
-```
+
+### 🔄 How the Pipeline Works:
+
+1. **Query & Language Ingestion**: User enters a query via the chat UI in English or Hindi.
+2. **Deterministic & Fallback Routing**: The **Router Agent** inspects query keywords. If matched, it instantaneously routes to the designated agent without LLM latency. For ambiguous queries, it falls back to an LLM intent classifier.
+3. **Domain Specialist Execution**:
+   - **Retriever Agent (RAG)**: Generates vector embeddings using `nomic-embed-text`, performs cosine similarity search on **ChromaDB**, and provides verified standard clauses to `Qwen2.5` to synthesize an answer with exact citations.
+   - **Certification Agent**: Matches products against structured BIS schemes (`certification_schemes.json`) and details exact application steps and timelines.
+   - **Consumer Agent**: Formulates clear, simplified guidance with direct references to the BIS CARE app and National Consumer Helpline (1915).
+   - **Hallmarking Agent**: **Pure rule-based execution** over `hallmarking_rules.json` to verify gold purity (24K, 22K, 18K, 14K) and 6-digit alphanumeric HUID format instantly with 0 LLM latency.
+   - **Lab Finder Agent**: Searches `labs.json` to recommend nearest BIS-recognized testing laboratories.
+4. **Multilingual Translation Layer**: Translates answers to Hindi seamlessly via `Qwen2.5` if selected or detected.
+5. **Transparency Badge & Citations**: Every response returns an explicit **"Answered by: [Agent Name]"** badge and verifiable document citations.
 
 ## Prerequisites
 
