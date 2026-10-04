@@ -4,50 +4,198 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ComplyBot — BIS Assistant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #ffffff;
-    --bg-sidebar: #f7f7f8;
-    --accent: #15803d;
-    --accent-light: #dcfce7;
-    --text: #1a1a1a;
-    --text-dim: #6b7280;
-    --border: #e5e7eb;
-    --bot-bubble: #f3f4f6;
-    --user-bubble: #15803d;
+    --bg: #0f0f11;
+    --bg-sidebar: #18181b;
+    --bg-hover: #27272a;
+    --bg-active: #2a2a2e;
+    --bg-chat: #0f0f11;
+    --accent: #22c55e;
+    --accent-dim: rgba(34,197,94,0.15);
+    --accent-glow: rgba(34,197,94,0.25);
+    --text: #fafafa;
+    --text-dim: #a1a1aa;
+    --text-muted: #71717a;
+    --border: #27272a;
+    --bot-bubble: #1c1c1f;
+    --user-bubble: #22c55e;
+    --danger: #ef4444;
+    --radius: 12px;
   }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg);
     color: var(--text);
     height: 100vh;
     display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  #sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border);
+    display: flex;
     flex-direction: column;
+    transition: margin-left 0.25s ease, opacity 0.25s ease;
+  }
+  #sidebar.collapsed {
+    margin-left: -280px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .sidebar-header {
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sidebar-brand .logo {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.75rem;
+    flex-shrink: 0;
+  }
+  .sidebar-brand span { font-weight: 600; font-size: 0.95rem; }
+
+  .btn-icon {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; padding: 6px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .btn-icon:hover { background: var(--bg-hover); color: var(--text); }
+
+  #new-chat-btn {
+    margin: 12px 16px 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px dashed var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.84rem;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  #new-chat-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
+
+  .sidebar-section-title {
+    padding: 12px 16px 6px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  #history-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 8px 12px;
+  }
+  #history-list::-webkit-scrollbar { width: 4px; }
+  #history-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .history-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.15s;
+    position: relative;
+    margin-bottom: 2px;
+  }
+  .history-item:hover { background: var(--bg-hover); }
+  .history-item.active { background: var(--bg-active); }
+  .history-item .hi-icon {
+    flex-shrink: 0;
+    width: 18px; height: 18px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted);
+  }
+  .history-item .hi-label {
+    flex: 1;
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .history-item.active .hi-label { color: var(--text); }
+  .history-item .hi-delete {
+    opacity: 0;
+    flex-shrink: 0;
+    background: none; border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.15s, color 0.15s;
+  }
+  .history-item:hover .hi-delete { opacity: 1; }
+  .history-item .hi-delete:hover { color: var(--danger); }
+
+  .sidebar-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  /* ── MAIN PANEL ── */
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
   header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 24px;
+    padding: 12px 20px;
     border-bottom: 1px solid var(--border);
     background: var(--bg);
   }
-  .header-left { display: flex; align-items: center; gap: 12px; }
-  .avatar {
-    width: 36px; height: 36px;
-    border-radius: 10px;
-    background: var(--accent);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 0.85rem;
-    flex-shrink: 0;
-  }
-  .header-title { font-weight: 600; font-size: 1rem; }
-  .header-subtitle { font-size: 0.78rem; color: var(--text-dim); }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  #toggle-sidebar-btn { display: none; }
+  #sidebar.collapsed ~ #main #toggle-sidebar-btn { display: flex; }
+
+  .header-title { font-weight: 600; font-size: 0.95rem; }
+  .header-subtitle { font-size: 0.73rem; color: var(--text-dim); }
+
   .lang-switch {
-    display: flex; gap: 4px;
+    display: flex; gap: 3px;
     background: var(--bg-sidebar);
     border: 1px solid var(--border);
     border-radius: 999px;
@@ -56,14 +204,20 @@
   .lang-switch button {
     border: none; background: transparent;
     padding: 5px 14px; border-radius: 999px;
-    font-size: 0.8rem; cursor: pointer;
+    font-size: 0.78rem; cursor: pointer;
     color: var(--text-dim);
+    font-family: inherit;
+    transition: all 0.15s;
   }
-  .lang-switch button.active { background: var(--accent); color: white; }
+  .lang-switch button.active { background: var(--accent); color: #0a0a0a; font-weight: 600; }
 
+  /* ── CHAT AREA ── */
   #chat-container { flex: 1; overflow-y: auto; }
+  #chat-container::-webkit-scrollbar { width: 6px; }
+  #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
+
   #chat {
-    max-width: 760px;
+    max-width: 780px;
     margin: 0 auto;
     padding: 24px 20px 12px;
     display: flex;
@@ -72,58 +226,90 @@
   }
   .row { display: flex; gap: 12px; align-items: flex-start; }
   .row.user { flex-direction: row-reverse; }
-  .row .avatar.bot-avatar { background: var(--accent); }
-  .row .avatar.user-avatar { background: #374151; }
 
-  .bubble-wrap { display: flex; flex-direction: column; max-width: 75%; }
+  .row .avatar {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+  .row .avatar.bot-avatar {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+  }
+  .row .avatar.user-avatar {
+    background: #3f3f46;
+    color: #d4d4d8;
+  }
+
+  .bubble-wrap { display: flex; flex-direction: column; max-width: 78%; min-width: 0; }
   .row.user .bubble-wrap { align-items: flex-end; }
 
   .agent-badge {
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     color: var(--accent);
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 5px;
     display: flex; align-items: center; gap: 5px;
   }
-  .agent-badge::before { content: "●"; font-size: 0.5rem; }
+  .agent-badge::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
 
   .bubble {
     padding: 12px 16px;
-    border-radius: 16px;
-    line-height: 1.55;
-    font-size: 0.93rem;
+    border-radius: 14px;
+    line-height: 1.6;
+    font-size: 0.9rem;
     white-space: pre-wrap;
+    word-break: break-word;
   }
-  .row.bot .bubble { background: var(--bot-bubble); border-bottom-left-radius: 4px; }
-  .row.user .bubble { background: var(--user-bubble); color: white; border-bottom-right-radius: 4px; }
+  .row.bot .bubble {
+    background: var(--bot-bubble);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+  }
+  .row.user .bubble {
+    background: var(--user-bubble);
+    color: #052e16;
+    font-weight: 500;
+    border-bottom-right-radius: 4px;
+  }
 
   .citations {
     margin-top: 10px;
     padding-top: 10px;
     border-top: 1px solid var(--border);
-    font-size: 0.76rem;
+    font-size: 0.74rem;
     color: var(--text-dim);
   }
-  .citations .cite-label { font-weight: 600; margin-bottom: 4px; }
+  .citations .cite-label { font-weight: 600; margin-bottom: 4px; color: var(--text-muted); }
   .citations a { color: var(--accent); text-decoration: none; }
   .citations a:hover { text-decoration: underline; }
   .citations div.cite-row { margin-top: 3px; }
 
-  .typing { display: flex; gap: 4px; padding: 6px 2px; }
+  .typing { display: flex; gap: 5px; padding: 6px 2px; }
   .typing span {
     width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-dim);
+    background: var(--accent);
     animation: bounce 1.3s infinite;
   }
   .typing span:nth-child(2) { animation-delay: 0.15s; }
   .typing span:nth-child(3) { animation-delay: 0.3s; }
   @keyframes bounce {
-    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
     30% { transform: translateY(-5px); opacity: 1; }
   }
 
+  /* ── SUGGESTIONS ── */
   #suggestions {
-    max-width: 760px;
+    max-width: 780px;
     margin: 0 auto;
     padding: 0 20px 16px;
     display: flex;
@@ -131,125 +317,331 @@
     flex-wrap: wrap;
   }
   #suggestions button {
-    background: var(--bg);
+    background: var(--bg-sidebar);
     border: 1px solid var(--border);
     color: var(--text-dim);
-    padding: 7px 14px;
+    padding: 8px 14px;
     border-radius: 999px;
     font-size: 0.78rem;
     cursor: pointer;
-    transition: border-color 0.15s, color 0.15s;
+    font-family: inherit;
+    transition: all 0.2s;
   }
-  #suggestions button:hover { border-color: var(--accent); color: var(--accent); }
+  #suggestions button:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-dim);
+  }
 
+  /* ── INPUT AREA ── */
   #input-area {
     border-top: 1px solid var(--border);
-    padding: 16px 20px 20px;
+    padding: 14px 20px 18px;
+    background: var(--bg);
   }
   #input-wrap {
-    max-width: 760px;
+    max-width: 780px;
     margin: 0 auto;
     display: flex;
     align-items: flex-end;
     gap: 10px;
     background: var(--bg-sidebar);
     border: 1px solid var(--border);
-    border-radius: 18px;
+    border-radius: 16px;
     padding: 8px 8px 8px 18px;
+    transition: border-color 0.2s;
   }
+  #input-wrap:focus-within { border-color: var(--accent); }
+
   #query-input {
     flex: 1;
     border: none;
     background: transparent;
     outline: none;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     resize: none;
     max-height: 120px;
     padding: 8px 0;
     font-family: inherit;
+    color: var(--text);
   }
+  #query-input::placeholder { color: var(--text-muted); }
+
   #send-btn {
-    width: 38px; height: 38px;
-    border-radius: 12px;
+    width: 36px; height: 36px;
+    border-radius: 10px;
     border: none;
     background: var(--accent);
-    color: white;
+    color: #0a0a0a;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
-    transition: opacity 0.15s;
+    transition: opacity 0.15s, transform 0.1s;
   }
-  #send-btn:disabled { opacity: 0.4; cursor: default; }
+  #send-btn:disabled { opacity: 0.3; cursor: default; }
+  #send-btn:not(:disabled):hover { transform: scale(1.05); }
+
   .footer-note {
     text-align: center;
-    font-size: 0.72rem;
-    color: var(--text-dim);
+    font-size: 0.7rem;
+    color: var(--text-muted);
     margin-top: 10px;
   }
 
+  /* ── EMPTY STATE ── */
   #empty-state {
-    max-width: 500px;
-    margin: 60px auto;
+    max-width: 480px;
+    margin: 80px auto;
     text-align: center;
     color: var(--text-dim);
   }
   #empty-state .big-avatar {
     width: 56px; height: 56px; border-radius: 16px;
-    background: var(--accent); color: white;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
     display: flex; align-items: center; justify-content: center;
-    font-weight: 700; font-size: 1.3rem;
+    font-weight: 700; font-size: 1.2rem;
     margin: 0 auto 16px;
+    box-shadow: 0 0 30px var(--accent-glow);
   }
-  #empty-state h2 { color: var(--text); font-size: 1.1rem; margin-bottom: 6px; }
-  #empty-state p { font-size: 0.85rem; }
+  #empty-state h2 { color: var(--text); font-size: 1.1rem; margin-bottom: 6px; font-weight: 600; }
+  #empty-state p { font-size: 0.84rem; line-height: 1.5; }
+
+  /* ── NO HISTORY STATE ── */
+  .no-history {
+    text-align: center;
+    padding: 32px 16px;
+    color: var(--text-muted);
+    font-size: 0.78rem;
+  }
+  .no-history svg { opacity: 0.3; margin-bottom: 8px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
+    #sidebar.collapsed { margin-left: -280px; }
+    #toggle-sidebar-btn { display: flex !important; }
+    .bubble-wrap { max-width: 88%; }
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left">
-    <div class="avatar">CB</div>
-    <div>
-      <div class="header-title">ComplyBot</div>
-      <div class="header-subtitle">Indian Standards & BIS Services — PS #04</div>
+<!-- ── SIDEBAR ── -->
+<div id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-brand">
+      <div class="logo">CB</div>
+      <span>ComplyBot</span>
     </div>
-  </div>
-  <div class="lang-switch">
-    <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
-    <button id="lang-hi" onclick="setLang('hi')">हिं</button>
-  </div>
-</header>
-
-<div id="chat-container">
-  <div id="chat"></div>
-  <div id="empty-state">
-    <div class="big-avatar">CB</div>
-    <h2>Ask me about BIS standards or certification</h2>
-    <p>I'll route your question to the right specialist — standards lookup, certification guidance, hallmarking, or lab recommendations — and always show my sources.</p>
-  </div>
-</div>
-
-<div id="suggestions">
-  <button onclick="fillExample('What standard applies to LED bulbs and how do I get certified?')">LED certification</button>
-  <button onclick="fillExample('मेरे हॉलमार्क की जांच कैसे करूं?')">Verify hallmark (Hindi)</button>
-  <button onclick="fillExample('Which lab can test my water purifier?')">Find a testing lab</button>
-  <button onclick="fillExample('I make plastic toys, what standard applies?')">Toy safety standard</button>
-</div>
-
-<div id="input-area">
-  <div id="input-wrap">
-    <textarea id="query-input" rows="1" placeholder="Message ComplyBot..." onkeydown="handleKey(event)"></textarea>
-    <button id="send-btn" onclick="sendQuery()" aria-label="Send">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+    <button class="btn-icon" onclick="toggleSidebar()" title="Close sidebar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
     </button>
   </div>
-  <div class="footer-note">ComplyBot gives source-backed guidance — always verify product-specific requirements with BIS before acting.</div>
+
+  <button id="new-chat-btn" onclick="newChat()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    New Chat
+  </button>
+
+  <div class="sidebar-section-title">Chat History</div>
+  <div id="history-list"></div>
+
+  <div class="sidebar-footer">
+    SIH26107 / Infothon 7.0 PS #04
+  </div>
+</div>
+
+<!-- ── MAIN PANEL ── -->
+<div id="main">
+  <header>
+    <div class="header-left">
+      <button id="toggle-sidebar-btn" class="btn-icon" onclick="toggleSidebar()" title="Open sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div>
+        <div class="header-title" id="header-chat-title">ComplyBot</div>
+        <div class="header-subtitle">Indian Standards & BIS Services — PS #04</div>
+      </div>
+    </div>
+    <div class="lang-switch">
+      <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
+      <button id="lang-hi" onclick="setLang('hi')">हिं</button>
+    </div>
+  </header>
+
+  <div id="chat-container">
+    <div id="chat"></div>
+    <div id="empty-state">
+      <div class="big-avatar">CB</div>
+      <h2>Ask me about BIS standards or certification</h2>
+      <p>I'll route your question to the right specialist — standards lookup, certification guidance, hallmarking, or lab recommendations — and always show my sources.</p>
+    </div>
+  </div>
+
+  <div id="suggestions">
+    <button onclick="fillExample('What standard applies to LED bulbs and how do I get certified?')">💡 LED certification</button>
+    <button onclick="fillExample('मेरे हॉलमार्क की जांच कैसे करूं?')">💎 Verify hallmark (Hindi)</button>
+    <button onclick="fillExample('Which lab can test my water purifier?')">🧪 Find a testing lab</button>
+    <button onclick="fillExample('I make plastic toys, what standard applies?')">🧸 Toy safety standard</button>
+  </div>
+
+  <div id="input-area">
+    <div id="input-wrap">
+      <textarea id="query-input" rows="1" placeholder="Message ComplyBot..." onkeydown="handleKey(event)"></textarea>
+      <button id="send-btn" onclick="sendQuery()" aria-label="Send">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+      </button>
+    </div>
+    <div class="footer-note">ComplyBot gives source-backed guidance — always verify product-specific requirements with BIS before acting.</div>
+  </div>
 </div>
 
 <script>
+  // ── STATE ──
   let currentLang = 'en';
-  const API_URL = 'http://localhost:8000/chat';
+  let activeSessionId = null;
+  const API_URL = '/chat';
+  const STORAGE_KEY = 'complybot_sessions';
 
+  // ── STORAGE HELPERS ──
+  function loadSessions() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
+  }
+  function saveSessions(sessions) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  }
+  function getSession(id) {
+    return loadSessions().find(s => s.id === id) || null;
+  }
+  function updateSession(id, updates) {
+    const sessions = loadSessions();
+    const idx = sessions.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      Object.assign(sessions[idx], updates);
+      saveSessions(sessions);
+    }
+  }
+  function deleteSession(id) {
+    saveSessions(loadSessions().filter(s => s.id !== id));
+    if (activeSessionId === id) newChat();
+    renderHistory();
+  }
+
+  // ── GENERATE ID ──
+  function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+
+  // ── CREATE SESSION ──
+  function createSession(firstQuery) {
+    const title = firstQuery.length > 42 ? firstQuery.slice(0, 42) + '…' : firstQuery;
+    const session = {
+      id: genId(),
+      title: title,
+      createdAt: new Date().toISOString(),
+      messages: []
+    };
+    const sessions = loadSessions();
+    sessions.unshift(session);
+    saveSessions(sessions);
+    return session;
+  }
+
+  // ── ADD MESSAGE TO SESSION ──
+  function addMessage(sessionId, role, text, meta) {
+    const sessions = loadSessions();
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) return;
+    session.messages.push({ role, text, meta: meta || null, ts: new Date().toISOString() });
+    saveSessions(sessions);
+  }
+
+  // ── RENDER HISTORY SIDEBAR ──
+  function renderHistory() {
+    const list = document.getElementById('history-list');
+    const sessions = loadSessions();
+
+    if (sessions.length === 0) {
+      list.innerHTML = `
+        <div class="no-history">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <div>No conversations yet.<br/>Start a new chat!</div>
+        </div>`;
+      return;
+    }
+
+    // Group by date
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const groups = { 'Today': [], 'Yesterday': [], 'Previous': [] };
+
+    sessions.forEach(s => {
+      const d = new Date(s.createdAt).toDateString();
+      if (d === today) groups['Today'].push(s);
+      else if (d === yesterday) groups['Yesterday'].push(s);
+      else groups['Previous'].push(s);
+    });
+
+    let html = '';
+    for (const [label, items] of Object.entries(groups)) {
+      if (items.length === 0) continue;
+      html += `<div class="sidebar-section-title" style="padding-left:10px;">${label}</div>`;
+      items.forEach(s => {
+        const isActive = s.id === activeSessionId ? ' active' : '';
+        html += `
+          <div class="history-item${isActive}" onclick="loadSession('${s.id}')" title="${escapeHtml(s.title)}">
+            <div class="hi-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </div>
+            <div class="hi-label">${escapeHtml(s.title)}</div>
+            <button class="hi-delete" onclick="event.stopPropagation(); deleteSession('${s.id}')" title="Delete">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>`;
+      });
+    }
+    list.innerHTML = html;
+  }
+
+  // ── LOAD SESSION ──
+  function loadSession(id) {
+    const session = getSession(id);
+    if (!session) return;
+    activeSessionId = id;
+
+    const chat = document.getElementById('chat');
+    chat.innerHTML = '';
+    hideEmptyState();
+
+    session.messages.forEach(msg => {
+      if (msg.role === 'user') {
+        appendUserMessageDirect(msg.text);
+      } else {
+        appendBotMessageDirect(msg.text, msg.meta);
+      }
+    });
+
+    document.getElementById('header-chat-title').textContent = session.title;
+    renderHistory();
+    scrollToBottom();
+  }
+
+  // ── NEW CHAT ──
+  function newChat() {
+    activeSessionId = null;
+    document.getElementById('chat').innerHTML = '';
+    document.getElementById('empty-state').style.display = '';
+    document.getElementById('suggestions').style.display = '';
+    document.getElementById('header-chat-title').textContent = 'ComplyBot';
+    renderHistory();
+  }
+
+  // ── SIDEBAR TOGGLE ──
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
+
+  // ── LANG ──
   function setLang(lang) {
     currentLang = lang;
     document.getElementById('lang-en').classList.toggle('active', lang === 'en');
@@ -277,6 +669,14 @@
   function hideEmptyState() {
     const es = document.getElementById('empty-state');
     if (es) es.style.display = 'none';
+    const sg = document.getElementById('suggestions');
+    if (sg) sg.style.display = 'none';
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.innerText = str;
+    return div.innerHTML;
   }
 
   function linkify(text) {
@@ -284,8 +684,22 @@
     return escapeHtml(text).replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
   }
 
-  function appendUserMessage(text) {
-    hideEmptyState();
+  function renderMarkdown(text) {
+    let h = escapeHtml(text);
+    h = h.replace(/^### (.*)$/gm, '<div style="font-weight:700;margin-top:10px;margin-bottom:4px;">$1</div>');
+    h = h.replace(/^## (.*)$/gm, '<div style="font-weight:700;font-size:1.02em;margin-top:10px;margin-bottom:4px;">$1</div>');
+    h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/(^|\n)- (.*)/g, '$1<div style="padding-left:14px;">• $2</div>');
+    return h;
+  }
+
+  function scrollToBottom() {
+    const c = document.getElementById('chat-container');
+    c.scrollTop = c.scrollHeight;
+  }
+
+  // ── DOM HELPERS (no storage, just render) ──
+  function appendUserMessageDirect(text) {
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
     row.className = 'row user';
@@ -294,9 +708,42 @@
       <div class="bubble-wrap"><div class="bubble">${escapeHtml(text)}</div></div>
     `;
     chat.appendChild(row);
+  }
+
+  function appendBotMessageDirect(text, meta) {
+    const chat = document.getElementById('chat');
+    const row = document.createElement('div');
+    row.className = 'row bot';
+
+    let citationsHtml = '';
+    if (meta && meta.citations && meta.citations.length) {
+      citationsHtml = `<div class="citations"><div class="cite-label">Sources</div>${
+        meta.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
+      }</div>`;
+    }
+
+    const agentBadge = meta && meta.agent
+      ? `<div class="agent-badge">${escapeHtml(meta.agent)}</div>`
+      : '';
+
+    row.innerHTML = `
+      <div class="avatar bot-avatar">CB</div>
+      <div class="bubble-wrap">
+        ${agentBadge}
+        <div class="bubble">${renderMarkdown(text)}${citationsHtml}</div>
+      </div>
+    `;
+    chat.appendChild(row);
+  }
+
+  // ── CHAT: USER MESSAGE ──
+  function appendUserMessage(text) {
+    hideEmptyState();
+    appendUserMessageDirect(text);
     scrollToBottom();
   }
 
+  // ── CHAT: BOT TYPING ──
   function appendBotTyping() {
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
@@ -313,32 +760,23 @@
     return row;
   }
 
-  function scrollToBottom() {
-    const c = document.getElementById('chat-container');
-    c.scrollTop = c.scrollHeight;
-  }
-
-  function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.innerText = str;
-    return div.innerHTML;
-  }
-
-  function renderMarkdown(text) {
-    let h = escapeHtml(text);
-    h = h.replace(/^### (.*)$/gm, '<div style="font-weight:700;margin-top:10px;margin-bottom:4px;">$1</div>');
-    h = h.replace(/^## (.*)$/gm, '<div style="font-weight:700;font-size:1.02em;margin-top:10px;margin-bottom:4px;">$1</div>');
-    h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    h = h.replace(/(^|\n)- (.*)/g, '$1<div style="padding-left:14px;">• $2</div>');
-    return h;
-  }
-
+  // ── SEND QUERY ──
   async function sendQuery() {
     const input = document.getElementById('query-input');
     const query = input.value.trim();
     if (!query) return;
 
+    // Create session on first message
+    if (!activeSessionId) {
+      const session = createSession(query);
+      activeSessionId = session.id;
+      document.getElementById('header-chat-title').textContent = session.title;
+      renderHistory();
+    }
+
     appendUserMessage(query);
+    addMessage(activeSessionId, 'user', query);
+
     input.value = '';
     input.style.height = 'auto';
     document.getElementById('send-btn').disabled = true;
@@ -353,11 +791,14 @@
       });
       const data = await response.json();
 
-      const citationsHtml = data.citations && data.citations.length
-        ? `<div class="citations"><div class="cite-label">Sources</div>${
-            data.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
-          }</div>`
-        : '';
+      const meta = { agent: data.agent, citations: data.citations || [] };
+
+      let citationsHtml = '';
+      if (data.citations && data.citations.length) {
+        citationsHtml = `<div class="citations"><div class="cite-label">Sources</div>${
+          data.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
+        }</div>`;
+      }
 
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
@@ -366,11 +807,14 @@
           <div class="bubble">${renderMarkdown(data.answer)}${citationsHtml}</div>
         </div>
       `;
+
+      addMessage(activeSessionId, 'bot', data.answer, meta);
+
     } catch (err) {
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
         <div class="bubble-wrap">
-          <div class="bubble" style="color:#dc2626;">Could not reach the ComplyBot backend. Is the server running on localhost:8000?</div>
+          <div class="bubble" style="color:#ef4444;">Could not reach ComplyBot backend. Is the server running on localhost:8000?</div>
         </div>
       `;
       console.error(err);
@@ -379,6 +823,9 @@
       scrollToBottom();
     }
   }
+
+  // ── INIT ──
+  renderHistory();
 </script>
 
 </body>
