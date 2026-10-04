@@ -15,6 +15,7 @@ Each public function returns a dict: {"agent": <name>, "answer": <text>, "citati
 
 import os
 import json
+import time
 import chromadb
 import ollama
 
@@ -49,15 +50,23 @@ def _get_collection():
     return _collection
 
 
-def _ollama_chat(system_prompt: str, user_prompt: str) -> str:
-    response = ollama.chat(
-        model=CHAT_MODEL,
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt},
-        ],
-    )
-    return response["message"]["content"].strip()
+def _ollama_chat(system_prompt: str, user_prompt: str, retries: int = 2) -> str:
+    """Call Ollama chat with automatic retry on transient failures (e.g. GPU crash)."""
+    for attempt in range(retries + 1):
+        try:
+            response = ollama.chat(
+                model=CHAT_MODEL,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+            )
+            return response["message"]["content"].strip()
+        except Exception as e:
+            if attempt < retries:
+                time.sleep(2 ** attempt)  # exponential backoff: 1s, 2s
+                continue
+            raise
 
 
 # ---------------------------------------------------------------------------
@@ -282,21 +291,30 @@ def translate(text: str, target_lang: str) -> str:
 # Top-level entry point used by main.py
 # ---------------------------------------------------------------------------
 def handle_query(query: str, language: str = None) -> dict:
-    domain = route_query(query)
-    lang = language or detect_language(query)
+    try:
+        domain = route_query(query)
+        lang = language or detect_language(query)
 
-    if domain == "hallmarking":
-        result = hallmarking_agent(query)
-    elif domain == "lab_finder":
-        result = lab_finder_agent(query)
-    elif domain == "certification":
-        result = certification_agent(query)
-    elif domain == "consumer":
-        result = consumer_agent(query)
-    else:
-        result = retriever_agent(query)
+        if domain == "hallmarking":
+            result = hallmarking_agent(query)
+        elif domain == "lab_finder":
+            result = lab_finder_agent(query)
+        elif domain == "certification":
+            result = certification_agent(query)
+        elif domain == "consumer":
+            result = consumer_agent(query)
+        else:
+            result = retriever_agent(query)
 
-    result["answer"] = translate(result["answer"], lang)
-    result["domain"] = domain
-    result["language"] = lang
-    return result
+        result["answer"] = translate(result["answer"], lang)
+        result["domain"] = domain
+        result["language"] = lang
+        return result
+    except Exception as e:
+        return {
+            "agent": "System",
+            "domain": "error",
+            "language": language or "en",
+            "answer": f"Ollama model error — the local LLM may have crashed. Please try again in a few seconds. (Details: {str(e)[:150]})",
+            "citations": [],
+        }
