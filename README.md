@@ -10,80 +10,35 @@ are no API costs and no internet dependency during your demo.
 
 ```mermaid
 flowchart TD
-    classDef client fill:#1e293b,stroke:#38bdf8,stroke-width:2px,color:#f8fafc
-    classDef api fill:#0f172a,stroke:#818cf8,stroke-width:2px,color:#f8fafc
-    classDef router fill:#312e81,stroke:#a5b4fc,stroke-width:2px,color:#f8fafc
-    classDef agent fill:#1e1b4b,stroke:#c084fc,stroke-width:2px,color:#f8fafc
-    classDef db fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#f8fafc
-    classDef llm fill:#701a75,stroke:#f472b6,stroke-width:2px,color:#f8fafc
-    classDef output fill:#14532d,stroke:#4ade80,stroke-width:2px,color:#f8fafc
+    classDef client fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#f8fafc;
+    classDef router fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#f8fafc;
+    classDef agent fill:#172554,stroke:#60a5fa,stroke-width:2px,color:#f8fafc;
+    classDef ai fill:#042f2e,stroke:#2dd4bf,stroke-width:2px,color:#f8fafc;
+    classDef out fill:#14532d,stroke:#4ade80,stroke-width:2px,color:#f8fafc;
 
-    User(["👤 User (Consumer / Manufacturer)"]):::client
-    UI["🖥️ Web Chat Interface<br/>(English / हिन्दी)"]:::client
+    User(["👤 User (Consumer / Industry)"]):::client --> UI["🖥️ Chat Interface (English / हिन्दी)"]:::client
+    UI --> API["⚡ FastAPI Backend (/chat)"]:::client
 
-    subgraph Backend ["⚡ FastAPI Application (Port 8000)"]
-        Endpoint["POST /chat"]:::api
-        Router["🧭 Router Agent<br/>• Keyword Rules Engine<br/>• LLM Fallback Classifier<br/>• Devanagari Language Detector"]:::router
+    API --> Router{"🧭 Router Agent<br/>(Keyword Rules + LLM Fallback)"}:::router
 
-        subgraph Agents ["🤖 Specialized Multi-Agent Swarm"]
-            Retriever["🔍 Retriever Agent<br/>(RAG Pipeline)"]:::agent
-            CertAgent["📜 Certification Agent<br/>(ISI Mark / CRS / FMCS)"]:::agent
-            ConsumerAgent["🛡️ Consumer Query Agent<br/>(Grievances & BIS CARE)"]:::agent
-            HallmarkAgent["💎 Hallmarking Agent<br/>(Purity & HUID Rules)"]:::agent
-            LabAgent["🧪 Lab Finder Agent<br/>(Directory Lookup)"]:::agent
-        end
-
-        Translator["🌐 Translation Layer<br/>(English ↔ Hindi LLM)"]:::router
-        Formatter["🏷️ Response Formatter<br/>(Agent Badge + Citations)"]:::output
+    subgraph Agents ["🤖 Specialized Multi-Agent Swarm"]
+        A1["🔍 Retriever Agent<br/>• RAG with ChromaDB<br/>• Embeddings via nomic-embed-text"]:::agent
+        A2["📜 Certification Agent<br/>• ISI Mark, CRS, FMCS schemes<br/>• Application steps & timelines"]:::agent
+        A3["🛡️ Consumer Agent<br/>• Plain-language explanations<br/>• BIS CARE app & 1915 helpline"]:::agent
+        A4["💎 Hallmarking Agent<br/>• Fast rule-based lookup (0s latency)<br/>• Gold purity & 6-digit HUID"]:::agent
+        A5["🧪 Lab Finder Agent<br/>• BIS testing lab directory<br/>• Filter by product & region"]:::agent
     end
 
-    subgraph Knowledge ["📚 Knowledge & Data Layer"]
-        Chroma[("🗄️ ChromaDB<br/>Vector Store (19 Chunks)")]:::db
-        CertJSON[("📄 certification_schemes.json")]:::db
-        HallmarkJSON[("📄 hallmarking_rules.json")]:::db
-        LabsJSON[("📄 labs.json")]:::db
-    end
+    Router -->|"standards"| A1
+    Router -->|"certification"| A2
+    Router -->|"consumer"| A3
+    Router -->|"hallmarking"| A4
+    Router -->|"lab_finder"| A5
 
-    subgraph LocalAI ["🦙 Local Ollama Engine (GPU / 100% Offline)"]
-        EmbedModel["🔤 nomic-embed-text<br/>(Vector Embeddings)"]:::llm
-        ChatModel["🧠 qwen2.5:7b-instruct<br/>(Inference & Synthesis)"]:::llm
-    end
+    A1 & A2 & A3 & A4 & A5 --> LocalAI["🦙 Local AI Engine (Ollama / Qwen2.5)<br/>• Offline synthesis with GPU acceleration<br/>• Multilingual translation (English ↔ Hindi)"]:::ai
 
-    %% Pipeline Connections
-    User -->|"Query & Language"| UI
-    UI -->|"HTTP Request"| Endpoint
-    Endpoint --> Router
-
-    Router -->|"standards"| Retriever
-    Router -->|"certification"| CertAgent
-    Router -->|"consumer"| ConsumerAgent
-    Router -->|"hallmarking"| HallmarkAgent
-    Router -->|"lab_finder"| LabAgent
-
-    %% Knowledge & LLM connections
-    Retriever <-->|"Embed Query"| EmbedModel
-    Retriever <-->|"Similarity Search"| Chroma
-    Retriever -->|"Context + Prompt"| ChatModel
-
-    CertAgent <-->|"Match Scheme"| CertJSON
-    CertAgent -->|"Explain Steps"| ChatModel
-
-    ConsumerAgent -->|"Plain Guidance Prompt"| ChatModel
-
-    HallmarkAgent <-->|"Instant Rule Lookup (0 LLM Latency)"| HallmarkJSON
-
-    LabAgent <-->|"Filter Category / City"| LabsJSON
-
-    %% Translator & Formatter
-    Retriever --> Translator
-    CertAgent --> Translator
-    ConsumerAgent --> Translator
-    HallmarkAgent --> Translator
-    LabAgent --> Translator
-
-    Translator -.->|"Hindi Prompt (if required)"| ChatModel
-    Translator --> Formatter
-    Formatter -->|"JSON Response"| UI
+    LocalAI --> Response["🏷️ Formatted Response<br/>• Agent Badge (shows which agent answered)<br/>• Official Standard & Clause Citations"]:::out
+    Response --> UI
 ```
 
 ### 🔄 How the Pipeline Works:
