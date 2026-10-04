@@ -95,21 +95,20 @@ You should see it embed each chunk and confirm it was stored in ChromaDB.
 
 ## Run the app
 
-You can run the app with **npm**:
+You can run the app with **npm** or terminal shortcuts (browser will open automatically):
 ```bash
 npm start
 # or
-npm st
+npm run st
+# or directly on Windows terminal:
+st
 ```
 
 Or directly with **Python**:
 ```bash
-cd backend
-uvicorn main:app --reload --port 8000
+python run.py
 ```
-
-Then open **http://localhost:8000** in your browser. The frontend is served
-directly by the backend, so this one URL is all you need.
+*(Your default web browser will automatically open `http://localhost:8000` once the server is ready).*
 
 ## Demo script (matches the plan we discussed)
 
