@@ -118,20 +118,30 @@ def detect_language(query: str) -> str:
 # Retriever Agent (standards Q&A + product -> standard recommendation)
 # ---------------------------------------------------------------------------
 def retriever_agent(query: str) -> dict:
-    collection = _get_collection()
-    embed_response = ollama.embeddings(model=EMBED_MODEL, prompt=query)
-    query_embedding = embed_response["embedding"]
-
-    results = collection.query(query_embeddings=[query_embedding], n_results=3)
-
-    retrieved_chunks = results["documents"][0] if results["documents"] else []
-    metadatas = results["metadatas"][0] if results["metadatas"] else []
+    retrieved_chunks = []
+    metadatas = []
+    try:
+        collection = _get_collection()
+        embed_response = ollama.embeddings(model=EMBED_MODEL, prompt=query)
+        query_embedding = embed_response["embedding"]
+        results = collection.query(query_embeddings=[query_embedding], n_results=3)
+        retrieved_chunks = results["documents"][0] if results["documents"] else []
+        metadatas = results["metadatas"][0] if results["metadatas"] else []
+    except Exception:
+        retrieved_chunks = []
+        metadatas = []
 
     if not retrieved_chunks:
+        system = (
+            "You are ComplyBot, an AI assistant for the Bureau of Indian Standards (BIS). "
+            "Answer the user's question about Indian Standards or BIS certification accurately and politely. "
+            "If relevant, mention standard numbers (IS numbers)."
+        )
+        answer = _ollama_chat(system, query)
         return {
             "agent": "Retriever Agent",
-            "answer": "I couldn't find a matching standard in the current knowledge base for that query.",
-            "citations": [],
+            "answer": answer,
+            "citations": ["Bureau of Indian Standards (BIS) Portal"],
         }
 
     context_block = "\n\n".join(

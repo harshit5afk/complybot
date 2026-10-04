@@ -1,0 +1,22 @@
+{
+  "name": "complybot",
+  "version": "1.0.0",
+  "description": "ComplyBot - AI-Powered Assistant for Indian Standards & BIS Services",
+  "scripts": {
+    "start": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
+    "st": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
+    "dev": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
+    "serve": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
+    "ingest": "python backend/ingest.py"
+  },
+  "keywords": [
+    "bis",
+    "compliance",
+    "ai",
+    "standards",
+    "fastapi",
+    "complybot"
+  ],
+  "author": "",
+  "license": "MIT"
+}

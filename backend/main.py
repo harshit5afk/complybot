@@ -11,11 +11,15 @@ Then open http://localhost:8000 in your browser.
 """
 
 import os
+import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+# Ensure backend directory is in sys.path
+sys.path.insert(0, os.path.dirname(__file__))
 
 import agents
 
@@ -46,8 +50,23 @@ class ChatResponse(BaseModel):
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(request: ChatRequest):
-    result = agents.handle_query(request.query, request.language)
-    return ChatResponse(**result)
+    try:
+        result = agents.handle_query(request.query, request.language)
+        return ChatResponse(
+            agent=str(result.get("agent", "ComplyBot")),
+            domain=str(result.get("domain", "general")),
+            language=str(result.get("language", request.language or "en")),
+            answer=str(result.get("answer", "No response generated.")),
+            citations=list(result.get("citations", [])),
+        )
+    except Exception as e:
+        return ChatResponse(
+            agent="System",
+            domain="error",
+            language=request.language or "en",
+            answer=f"Server error: {str(e)}",
+            citations=[],
+        )
 
 
 @app.get("/")

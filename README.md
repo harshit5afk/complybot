@@ -95,6 +95,14 @@ You should see it embed each chunk and confirm it was stored in ChromaDB.
 
 ## Run the app
 
+You can run the app with **npm**:
+```bash
+npm start
+# or
+npm st
+```
+
+Or directly with **Python**:
 ```bash
 cd backend
 uvicorn main:app --reload --port 8000
