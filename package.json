@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "ComplyBot - AI-Powered Assistant for Indian Standards & BIS Services",
   "scripts": {
-    "start": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
-    "st": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
-    "dev": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
-    "serve": "python -m uvicorn main:app --reload --port 8000 --app-dir backend",
+    "start": "python run.py",
+    "st": "python run.py",
+    "dev": "python run.py",
+    "serve": "python run.py",
     "ingest": "python backend/ingest.py"
   },
   "keywords": [
