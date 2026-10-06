@@ -22,7 +22,7 @@ import ollama
 CHROMA_DIR = os.path.join(os.path.dirname(__file__), "..", "chroma_db")
 DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 EMBED_MODEL = "nomic-embed-text"
-CHAT_MODEL = "qwen2.5:7b-instruct"  # swap for a smaller model if your GPU struggles, see README
+CHAT_MODEL = "qwen2.5:3b-instruct"  # fits perfectly in 4GB VRAM GPU, ultra-fast and stable
 COLLECTION_NAME = "bis_standards"
 
 # ---------------------------------------------------------------------------
