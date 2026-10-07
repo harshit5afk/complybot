@@ -2,15 +2,18 @@
 main.py
 FastAPI backend for ComplyBot.
 Exposes endpoints for chat, multi-agent pipeline routing, user authentication (JWT),
-and persistent conversations and messages via SQLite and SQLAlchemy.
+persistent conversations & messages via SQLite/SQLAlchemy, file/label upload with OCR analysis,
+and BIS recognized laboratory directory filtering.
 """
 
 import os
 import sys
+import shutil
+import time
 from typing import Optional, List
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -21,7 +24,8 @@ from sqlalchemy.orm import Session
 sys.path.insert(0, os.path.dirname(__file__))
 
 import agents
-from database import init_db, get_db, User, Conversation, Message
+import ocr
+from database import init_db, get_db, User, Conversation, Message, UploadedDocument
 from auth import (
     hash_password,
     verify_password,
@@ -31,6 +35,8 @@ from auth import (
 )
 
 FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "..", "frontend")
+UPLOADS_DIR = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 
 @asynccontextmanager
@@ -127,7 +133,16 @@ class ChatResponse(BaseModel):
     answer: str
     citations: List[str]
     confidence: float
+    explanation: Optional[str] = None
     conversation_id: Optional[int] = None
+
+
+class UploadResponse(BaseModel):
+    filename: str
+    detected_scheme: str
+    compliance_score: int
+    is_compliant: bool
+    chat_response: ChatResponse
 
 
 # ---------------------------------------------------------------------------
@@ -325,7 +340,125 @@ def delete_conversation(
 
 
 # ---------------------------------------------------------------------------
-# Chat Endpoint with Conversation Memory & Confidence
+# Filterable Laboratories Directory Endpoint (NEW Phase 2)
+# ---------------------------------------------------------------------------
+@app.get("/labs")
+def get_labs(
+    state: Optional[str] = None,
+    category: Optional[str] = None,
+    accreditation: Optional[str] = None,
+    export_certified: Optional[bool] = None,
+):
+    """Filters the directory of BIS-recognized test laboratories."""
+    filtered = []
+    for lab in agents.LABS:
+        if state and state.lower() not in lab.get("state", "").lower():
+            continue
+        if category and not any(category.lower() in c.lower() for c in lab.get("categories", [])):
+            continue
+        if accreditation and not any(accreditation.lower() in a.lower() for a in lab.get("accreditation", [])):
+            continue
+        if export_certified is not None and lab.get("export_certified") != export_certified:
+            continue
+        filtered.append(lab)
+
+    return {"total": len(filtered), "labs": filtered}
+
+
+# ---------------------------------------------------------------------------
+# Document & Label Photo Upload Endpoint (NEW Phase 2)
+# ---------------------------------------------------------------------------
+@app.post("/upload", response_model=UploadResponse)
+async def upload_document(
+    file: UploadFile = File(...),
+    conversation_id: Optional[int] = Form(None),
+    session_id: Optional[str] = Form(None),
+    user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db),
+):
+    """Uploads a product label photo, certificate, or packaging artwork for OCR compliance audit."""
+    try:
+        # Save file to disk
+        safe_filename = f"{int(time.time())}_{file.filename}"
+        file_path = os.path.join(UPLOADS_DIR, safe_filename)
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        # Run OCR extraction and compliance rules
+        extracted_text = ocr.extract_text_from_image(file_path)
+        analysis = ocr.analyze_compliance_text(extracted_text, filename=file.filename)
+        agent_resp = agents.document_analysis_agent(analysis)
+
+        # Find or create persistent conversation
+        conv = None
+        if conversation_id:
+            conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+
+        if not conv:
+            conv = Conversation(
+                title=f"Audit: {file.filename[:30]}",
+                user_id=user.id if user else None,
+                session_id=session_id,
+            )
+            db.add(conv)
+            db.commit()
+            db.refresh(conv)
+
+        # Record uploaded document in DB
+        doc_record = UploadedDocument(
+            user_id=user.id if user else None,
+            filename=file.filename,
+            file_path=file_path,
+            file_type="label_image",
+            ocr_text=extracted_text,
+        )
+        db.add(doc_record)
+
+        # Record user upload message and audit response in conversation
+        user_msg = Message(
+            conversation_id=conv.id,
+            role="user",
+            content=f"📷 [Uploaded Label Document for Audit: {file.filename}]",
+        )
+        db.add(user_msg)
+
+        bot_msg = Message(
+            conversation_id=conv.id,
+            role="assistant",
+            content=agent_resp["answer"],
+            agent=agent_resp["agent"],
+            domain="document_audit",
+            citations=agent_resp.get("citations", []),
+            confidence=agent_resp.get("confidence", 0.90),
+        )
+        db.add(bot_msg)
+        db.commit()
+
+        chat_out = ChatResponse(
+            agent=agent_resp["agent"],
+            domain="document_audit",
+            language="en",
+            answer=agent_resp["answer"],
+            citations=agent_resp.get("citations", []),
+            confidence=agent_resp.get("confidence", 0.90),
+            explanation=agent_resp.get("explanation"),
+            conversation_id=conv.id,
+        )
+
+        return UploadResponse(
+            filename=file.filename,
+            detected_scheme=analysis["detected_scheme"],
+            compliance_score=analysis["compliance_score"],
+            is_compliant=analysis["is_compliant"],
+            chat_response=chat_out,
+        )
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process document: {str(e)}")
+
+
+# ---------------------------------------------------------------------------
+# Chat Endpoint with Multi-Turn Memory, Explanations & Confidence
 # ---------------------------------------------------------------------------
 @app.post("/chat", response_model=ChatResponse)
 def chat(
@@ -386,6 +519,7 @@ def chat(
         answer_text = str(result.get("answer", "No response generated."))
         citations = list(result.get("citations", []))
         confidence = float(result.get("confidence", 0.85))
+        explanation = result.get("explanation")
 
         # Save assistant message to database
         bot_msg = Message(
@@ -409,6 +543,7 @@ def chat(
             answer=answer_text,
             citations=citations,
             confidence=confidence,
+            explanation=explanation,
             conversation_id=conv.id,
         )
 
@@ -420,6 +555,7 @@ def chat(
             answer=f"Server error: {str(e)}",
             citations=[],
             confidence=0.0,
+            explanation="Execution failed.",
             conversation_id=request.conversation_id,
         )
 

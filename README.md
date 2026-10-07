@@ -120,15 +120,22 @@ python run.py
 4. Point out the **"Answered by: ..."** badge, **Confidence Rating (%)**, and verifiable source citations on each response.
 5. Log in or create an account via the sidebar footer to save threads across sessions.
 
-## 🚀 Phase 1 Upgrades (Completed)
+## 🚀 System Evolution: Phase 1 & Phase 2 (Completed)
 
-- **Persistent SQLite Database (`database.py`)**: Stores users, conversations, messages, and uploaded documents with zero external database dependencies.
+### Phase 1 — Foundation & Authentication
+- **Persistent SQLite Database (`database.py`)**: Stores users, conversations, messages, and uploaded documents.
 - **User Authentication & Profiles (`auth.py`)**: Secure bcrypt password hashing and JWT bearer tokens (`/register`, `/login`, `/me`).
 - **Multi-Turn Conversation Memory**: Preserves context across conversation turns by injecting recent message history into LLM prompts.
-- **Answer Confidence & Transparency Scoring**: Computes vector similarity alignment and displays color-coded confidence badges (`96% Confidence`), with safety warnings for low-confidence queries.
-- **Server-Synchronized Threads**: Full multi-session history with server persistence for both authenticated users and guests.
+- **Answer Confidence Scoring**: Computes vector similarity alignment and displays color-coded confidence badges (`96% Confidence`), with safety warnings for low-confidence queries.
 
-## Extending this further (Phase 2 & 3 Roadmap)
+### Phase 2 — Core Compliance Product Features
+- **Compliance Checklist Generator Agent**: Provides structured regulatory roadmaps for product categories (standards, routes, markings, testing, documents, timeline, and cost).
+- **Compare Mode Agent**: Side-by-side comparative analysis of regulatory requirements across product classes (e.g., LED lamps vs electric fans) rendered as interactive comparison tables.
+- **Product Label & Certificate OCR Audit (`POST /upload`)**: Upload product photos, packaging labels, or certificates to automatically audit against official BIS statutory markings (ISI logo, CM/L number, CRS R-Number, and HUID).
+- **Filterable Lab Directory (`GET /labs`)**: Search and filter BIS-recognized testing laboratories by state, testing category, NABL accreditation, and global export certification.
+- **Evidence Provenance ("Why this answer?")**: Every response features source provenance metadata explaining how the multi-agent swarm derived the answer.
 
-- **Phase 2**: Structured Compliance Checklist Generator agent, side-by-side Product Compare mode, Label OCR image upload verification, and rich lab filters.
-- **Phase 3**: Admin knowledge management portal, PDF compliance report exports, and hybrid search ranking.
+## 🔮 Phase 3 Roadmap
+- Admin Knowledge Management Portal & Review Queue
+- Exportable PDF Compliance Assessment Reports
+- Hybrid Vector + BM25 Keyword Search with Reciprocal Rank Fusion

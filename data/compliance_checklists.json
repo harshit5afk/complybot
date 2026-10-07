@@ -1,0 +1,188 @@
+{
+  "checklists": [
+    {
+      "product_category": "LED Lamps & Luminaires",
+      "keywords": ["led", "led bulb", "led lamp", "led light", "luminaire", "lighting"],
+      "applicable_standards": [
+        "IS 16102 (Part 1): Self-ballasted LED lamps - Performance requirements",
+        "IS 16102 (Part 2): Self-ballasted LED lamps - Safety requirements",
+        "IS 16103: LED modules for general lighting - Safety requirements"
+      ],
+      "certification_route": "Compulsory Registration Scheme (CRS - Scheme II)",
+      "marking_requirements": [
+        "Unique BIS Registration Number (R-XXXXXXXX) prominently marked on product and packaging",
+        "Standard CRS statement: 'Self-Declaration - Conforming to IS 16102 (Part 2):2012'",
+        "Rated voltage, wattage, lumen output, and manufacturer brand name"
+      ],
+      "testing_required": [
+        "Photometric performance and luminous efficacy (IS 16102 Part 1, Clause 6)",
+        "Electrical insulation resistance and electric strength test (IS 16102 Part 2, Clause 9)",
+        "Resistance to heat and fire (Clause 14)",
+        "Creepage distance and clearances (Clause 13)"
+      ],
+      "documents_needed": [
+        "Complete Test Report from a BIS-recognized laboratory (under 90 days old)",
+        "Business registration / factory license / MSME Udyam Certificate",
+        "Brand Name / Trademark Registration Certificate or Brand Owner Authorization Letter",
+        "Undertaking / Affidavit from Authorized Indian Representative (AIR) for foreign manufacturers",
+        "Product technical specification sheet and photo documentation"
+      ],
+      "timeline_estimate": "4 to 8 weeks (lab testing typically 2-3 weeks, BIS portal approval 1-2 weeks)",
+      "estimated_cost_range": "₹15,000 – ₹45,000 (varies based on lab testing scope and model series)",
+      "renewal_period": "Every 2 years through BIS CRS Portal",
+      "risk_level": "Medium",
+      "source_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/scheme-ii-registration-scheme/?lang=en"
+    },
+    {
+      "product_category": "Electric Ceiling Fans & Household Fans",
+      "keywords": ["fan", "ceiling fan", "electric fan", "table fan", "pedestal fan", "exhaust fan"],
+      "applicable_standards": [
+        "IS 374: Electric Ceiling Type Fans and Regulators - Specification",
+        "IS 302 (Part 2/Sec 80): Safety of household appliances - Fans"
+      ],
+      "certification_route": "ISI Mark (Product Certification Scheme - Scheme I)",
+      "marking_requirements": [
+        "Official BIS ISI Mark monogram with License Number (CM/L-XXXXXXX)",
+        "Sweep size (mm), rated voltage, input power (Watts), service value, and manufacturer details",
+        "BEE Star Rating Label (1 to 5 Stars mandatory under Energy Conservation regulations)"
+      ],
+      "testing_required": [
+        "Air delivery test and Service Value measurement (IS 374, Clause 10)",
+        "Temperature rise test on motor windings (IS 374, Clause 11)",
+        "Starting test at low voltage (IS 374, Clause 9)",
+        "Earthing continuity and high-voltage breakdown test (IS 302-1)"
+      ],
+      "documents_needed": [
+        "Factory premise lease deed or title deed and manufacturing plant layout",
+        "List of in-house testing equipment (anemometer chamber, wattmeter, hi-pot tester)",
+        "Calibration certificates for testing equipment",
+        "Manufacturing flow chart and Quality Control personnel details",
+        "Sample testing application to BIS Regional Office"
+      ],
+      "timeline_estimate": "2 to 4 months (involves formal BIS factory audit and sample drawing)",
+      "estimated_cost_range": "₹40,000 – ₹90,000 (includes application fee, factory audit, lab testing, and minimum marking fee)",
+      "renewal_period": "Annual / Bi-annual license renewal with periodic surveillance audits",
+      "risk_level": "High (Mandatory ISI Quality Control Order)",
+      "source_url": "https://www.bis.gov.in/product-certification/product-certification-process/?lang=en"
+    },
+    {
+      "product_category": "Toys & Children's Play Equipment",
+      "keywords": ["toy", "toys", "plastic toy", "plush toy", "electric toy", "doll", "action figure"],
+      "applicable_standards": [
+        "IS 9873 (Part 1): Safety of toys - Mechanical and physical properties",
+        "IS 9873 (Part 2): Safety of toys - Flammability",
+        "IS 9873 (Part 3): Migration of certain chemical elements (Heavy metals)",
+        "IS 15644: Safety of electric toys"
+      ],
+      "certification_route": "ISI Mark (Product Certification Scheme I - Scheme I Special Audit Route)",
+      "marking_requirements": [
+        "Mandatory ISI Mark logo with valid CM/L license code",
+        "Age grading label (e.g., 'Not suitable for children under 3 years')",
+        "Batch/lot number and manufacturer legal identity"
+      ],
+      "testing_required": [
+        "Small parts choke hazard test for under-36-month toys (IS 9873 Part 1)",
+        "Sharp edges and sharp points testing (IS 9873 Part 1)",
+        "Lead, cadmium, mercury, and phthalate migration limits (IS 9873 Part 3)",
+        "Electrical safety and battery containment (IS 15644 for motorized/battery toys)"
+      ],
+      "documents_needed": [
+        "Factory inspection documentation and in-house laboratory setup",
+        "List of raw materials with food-grade / non-toxic plastic certificates",
+        "Quality assurance plan and qualified QC chemist/engineer profile",
+        "BIS Portal e-application form and fee receipt"
+      ],
+      "timeline_estimate": "2 to 3 months for domestic manufacturing units",
+      "estimated_cost_range": "₹35,000 – ₹75,000",
+      "renewal_period": "Every 1 or 2 years",
+      "risk_level": "High (Mandatory Toys Quality Control Order QCO)",
+      "source_url": "https://www.bis.gov.in/product-certification/product-certification-process/?lang=en"
+    },
+    {
+      "product_category": "Packaged Drinking Water & Mineral Water",
+      "keywords": ["water", "packaged drinking water", "mineral water", "bottled water", "ro water", "drinking water"],
+      "applicable_standards": [
+        "IS 14543: Packaged Drinking Water (Other than Packaged Natural Mineral Water)",
+        "IS 13428: Packaged Natural Mineral Water"
+      ],
+      "certification_route": "ISI Mark (Mandatory Scheme I with In-house Microbiology Lab)",
+      "marking_requirements": [
+        "Prominent ISI Mark with CM/L License Number",
+        "FSSAI license number and batch manufacturing date",
+        "Date of expiry / best before declaration and net volume"
+      ],
+      "testing_required": [
+        "Microbiological examination (E. coli, coliforms, salmonella, yeast, mold)",
+        "Chemical analysis (TDS, pH, nitrates, fluorides, lead, arsenic, pesticide residues)",
+        "Packaging material food-contact compatibility (IS 15410)"
+      ],
+      "documents_needed": [
+        "Borewell / raw water extraction NOC (CGWA clearance)",
+        "Full in-house testing laboratory with qualified microbiologist and chemist",
+        "RO / ozonation / UV water treatment plant flow diagram",
+        "FSSAI food license"
+      ],
+      "timeline_estimate": "3 to 5 months",
+      "estimated_cost_range": "₹60,000 – ₹1,20,000 (includes heavy pesticide testing costs)",
+      "renewal_period": "Annual renewal with quarterly surveillance sample drawing",
+      "risk_level": "High (Direct human ingestion safety)",
+      "source_url": "https://www.bis.gov.in/product-certification/product-certification-process/?lang=en"
+    },
+    {
+      "product_category": "Gold & Silver Jewellery (Hallmarking)",
+      "keywords": ["gold", "silver", "jewellery", "jewelry", "hallmark", "huid", "ornament", "bullion"],
+      "applicable_standards": [
+        "IS 1417: Gold and Gold Alloys, Platings - Purity and fineness",
+        "IS 2112: Silver and Silver Alloys - Purity and fineness",
+        "IS 15820: Assaying and Hallmarking Centres - Operating guidelines"
+      ],
+      "certification_route": "BIS Hallmarking Scheme (Jeweller Registration + AHC Assaying)",
+      "marking_requirements": [
+        "BIS Hallmark Logo (triangle with dot)",
+        "Purity in Karat and Fineness (e.g., 22K 916, 18K 750, 14K 585)",
+        "Unique 6-character alphanumeric HUID code laser engraved on each individual item"
+      ],
+      "testing_required": [
+        "Fire assay method (cupellation) or X-Ray Fluorescence (XRF) at a BIS recognized AHC"
+      ],
+      "documents_needed": [
+        "Jeweller GST Registration Certificate",
+        "PAN card and Aadhaar of authorized proprietor/partner/director",
+        "Store location address proof",
+        "Online submission on manakonline.in portal"
+      ],
+      "timeline_estimate": "Jeweller registration: Instant to 24 hours online; Batch hallmarking: 1 to 2 business days at AHC",
+      "estimated_cost_range": "₹0 to ₹2,500 registration fee (based on turnover); ₹45 per gold article at AHC (+ GST)",
+      "renewal_period": "Registration is valid for lifetime unless revoked; zero renewal fee",
+      "risk_level": "Low for Jeweller, Mandatory for retail sale",
+      "source_url": "https://www.bis.gov.in/hallmarking/"
+    },
+    {
+      "product_category": "Mobile Phone Chargers & Power Adapters",
+      "keywords": ["charger", "power adapter", "adapter", "mobile charger", "usb charger", "power bank"],
+      "applicable_standards": [
+        "IS 13252 (Part 1): Information Technology Equipment - Safety - General Requirements"
+      ],
+      "certification_route": "Compulsory Registration Scheme (CRS - Scheme II)",
+      "marking_requirements": [
+        "BIS CRS Registration Mark with R-XXXXXXXX",
+        "Input voltage/current, output rating (e.g., 5V 2A), manufacturer brand"
+      ],
+      "testing_required": [
+        "Electric shock hazard and earth leakage test (Clause 2.1)",
+        "Overheating and abnormal operation test (Clause 4.5)",
+        "Short-circuit and overload protection test (Clause 5.3)"
+      ],
+      "documents_needed": [
+        "BIS accredited test report from NABL/BIS lab",
+        "Bill of materials (BOM) and circuit schematic",
+        "Factory authorization and Indian Representative (AIR) agreement"
+      ],
+      "timeline_estimate": "3 to 6 weeks",
+      "estimated_cost_range": "₹20,000 – ₹50,000",
+      "renewal_period": "Every 2 years",
+      "risk_level": "Medium",
+      "source_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/scheme-ii-registration-scheme/?lang=en"
+    }
+  ]
+}

@@ -29,6 +29,8 @@ ENV/
 # ChromaDB / Vector Store local data
 chroma_db/
 *.db
+backend/uploads/
+uploads/
 
 # IDE / OS
 .idea/

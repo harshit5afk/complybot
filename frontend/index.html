@@ -276,7 +276,7 @@
   #chat-container::-webkit-scrollbar-thumb { background: var(--border); border-radius: 6px; }
 
   #chat {
-    max-width: 780px;
+    max-width: 820px;
     margin: 0 auto;
     padding: 24px 20px 12px;
     display: flex;
@@ -302,7 +302,7 @@
     color: #d4d4d8;
   }
 
-  .bubble-wrap { display: flex; flex-direction: column; max-width: 82%; min-width: 0; }
+  .bubble-wrap { display: flex; flex-direction: column; max-width: 86%; min-width: 0; }
   .row.user .bubble-wrap { align-items: flex-end; }
 
   .badge-row {
@@ -353,17 +353,26 @@
     border: 1px solid rgba(239,68,68,0.25);
   }
 
-  .memory-badge {
-    font-size: 0.64rem;
+  .explanation-pill {
+    font-size: 0.65rem;
     color: #93c5fd;
     background: rgba(59,130,246,0.12);
     border: 1px solid rgba(59,130,246,0.25);
-    padding: 2px 6px;
+    padding: 2px 7px;
     border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+  }
+  .explanation-pill:hover {
+    background: rgba(59,130,246,0.2);
+    color: #bfdbfe;
   }
 
   .bubble {
-    padding: 12px 16px;
+    padding: 14px 18px;
     border-radius: 14px;
     line-height: 1.6;
     font-size: 0.9rem;
@@ -383,7 +392,7 @@
   }
 
   .citations {
-    margin-top: 10px;
+    margin-top: 12px;
     padding-top: 10px;
     border-top: 1px solid var(--border);
     font-size: 0.74rem;
@@ -409,7 +418,7 @@
 
   /* ── SUGGESTIONS ── */
   #suggestions {
-    max-width: 780px;
+    max-width: 820px;
     margin: 0 auto;
     padding: 0 20px 16px;
     display: flex;
@@ -440,7 +449,7 @@
     background: var(--bg);
   }
   #input-wrap {
-    max-width: 780px;
+    max-width: 820px;
     margin: 0 auto;
     display: flex;
     align-items: flex-end;
@@ -448,10 +457,28 @@
     background: var(--bg-sidebar);
     border: 1px solid var(--border);
     border-radius: 16px;
-    padding: 8px 8px 8px 18px;
+    padding: 8px 10px 8px 14px;
     transition: border-color 0.2s;
   }
   #input-wrap:focus-within { border-color: var(--accent); }
+
+  .attach-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .attach-btn:hover {
+    color: var(--accent);
+    background: var(--bg-hover);
+  }
 
   #query-input {
     flex: 1;
@@ -490,8 +517,8 @@
 
   /* ── EMPTY STATE ── */
   #empty-state {
-    max-width: 480px;
-    margin: 80px auto;
+    max-width: 520px;
+    margin: 70px auto;
     text-align: center;
     color: var(--text-dim);
   }
@@ -504,8 +531,8 @@
     margin: 0 auto 16px;
     box-shadow: 0 0 30px var(--accent-glow);
   }
-  #empty-state h2 { color: var(--text); font-size: 1.1rem; margin-bottom: 6px; font-weight: 600; }
-  #empty-state p { font-size: 0.84rem; line-height: 1.5; }
+  #empty-state h2 { color: var(--text); font-size: 1.15rem; margin-bottom: 6px; font-weight: 600; }
+  #empty-state p { font-size: 0.85rem; line-height: 1.55; }
 
   .no-history {
     text-align: center;
@@ -667,26 +694,33 @@
     <div id="chat"></div>
     <div id="empty-state">
       <div class="big-avatar">CB</div>
-      <h2>Ask me about BIS standards or certification</h2>
-      <p>I'll route your question to the right specialist — standards lookup, certification guidance, hallmarking, or lab recommendations — with verifiable sources, confidence ratings, and multi-turn conversation memory.</p>
+      <h2>Enterprise BIS Compliance Swarm</h2>
+      <p>I route questions to specialized agents for standards lookup, structured compliance roadmaps, side-by-side product comparisons, lab directories, and label OCR verification — with transparent confidence metrics and cross-turn memory.</p>
     </div>
   </div>
 
   <div id="suggestions">
-    <button onclick="fillExample('What standard applies to LED bulbs and how do I get certified?')">💡 LED certification</button>
-    <button onclick="fillExample('मेरे हॉलमार्क की जांच कैसे करूं?')">💎 Verify hallmark (Hindi)</button>
-    <button onclick="fillExample('Which lab can test my water purifier?')">🧪 Find a testing lab</button>
-    <button onclick="fillExample('I make plastic toys, what standard applies?')">🧸 Toy safety standard</button>
+    <button onclick="fillExample('What is the checklist and requirements for LED lamps?')">📋 LED Compliance Checklist</button>
+    <button onclick="fillExample('Compare BIS certification requirements for LED lights vs fans')">⚖️ Compare: LED vs Fans</button>
+    <button onclick="fillExample('Which lab can test my water purifier?')">🧪 Find Testing Lab</button>
+    <button onclick="fillExample('I make plastic toys, what standard applies?')">🧸 Toy Safety Standard</button>
+    <button onclick="fillExample('मेरे हॉलमार्क की जांच कैसे करूं?')">💎 Verify Hallmark (Hindi)</button>
   </div>
 
   <div id="input-area">
     <div id="input-wrap">
-      <textarea id="query-input" rows="1" placeholder="Message ComplyBot..." onkeydown="handleKey(event)"></textarea>
+      <!-- Label / Certificate Photo Upload Button -->
+      <button class="attach-btn" onclick="document.getElementById('file-upload-input').click()" title="Audit label photo or certificate (OCR Analysis)">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
+      <input type="file" id="file-upload-input" style="display:none" accept="image/*,application/pdf" onchange="handleFileUpload(event)" />
+
+      <textarea id="query-input" rows="1" placeholder="Message ComplyBot or ask for compliance checklists..." onkeydown="handleKey(event)"></textarea>
       <button id="send-btn" onclick="sendQuery()" aria-label="Send">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
       </button>
     </div>
-    <div class="footer-note">ComplyBot provides regulatory intelligence with verified source citations — verify product-specific notices with BIS before filing applications.</div>
+    <div class="footer-note">ComplyBot multi-agent regulatory swarm — verify statutory notifications with the Bureau of Indian Standards before commercial filing.</div>
   </div>
 </div>
 
@@ -708,7 +742,7 @@
     <div id="auth-form">
       <div class="form-group" id="group-name" style="display: none;">
         <label class="form-label">Full Name or Company</label>
-        <input type="text" class="form-input" id="auth-name" placeholder="e.g. Rahul Sharma / Acme Ltd">
+        <input type="text" class="form-input" id="auth-name" placeholder="e.g. Rahul Sharma / Acme Corp">
       </div>
       <div class="form-group">
         <label class="form-label">Email Address</label>
@@ -727,10 +761,10 @@
 <script>
   // ── CONSTANTS & STATE ──
   const API_CHAT = '/chat';
+  const API_UPLOAD = '/upload';
   const API_CONVERSATIONS = '/conversations';
   const API_LOGIN = '/login';
   const API_REGISTER = '/register';
-  const API_ME = '/me';
 
   const TOKEN_KEY = 'complybot_auth_token';
   const USER_KEY = 'complybot_user';
@@ -913,7 +947,7 @@
     if (!conversationsList || conversationsList.length === 0) {
       list.innerHTML = `
         <div class="no-history">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           <div>No conversations yet.<br/>Start a new compliance query!</div>
         </div>`;
       return;
@@ -925,7 +959,7 @@
       html += `
         <div class="history-item${isActive}" onclick="loadConversation(${c.id})" title="${escapeHtml(c.title)}">
           <div class="hi-icon">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           </div>
           <div class="hi-label">${escapeHtml(c.title)}</div>
           <button class="hi-delete" onclick="event.stopPropagation(); deleteConversation(${c.id})" title="Delete conversation">
@@ -958,7 +992,8 @@
           appendBotMessageDirect(msg.content, {
             agent: msg.agent,
             citations: msg.citations,
-            confidence: msg.confidence
+            confidence: msg.confidence,
+            explanation: msg.explanation
           });
         }
       });
@@ -1042,13 +1077,47 @@
     return escapeHtml(text).replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
   }
 
+  // ── ADVANCED MARKDOWN & TABLE PARSER ──
   function renderMarkdown(text) {
     let h = escapeHtml(text);
-    h = h.replace(/^### (.*)$/gm, '<div style="font-weight:700;margin-top:10px;margin-bottom:4px;">$1</div>');
-    h = h.replace(/^## (.*)$/gm, '<div style="font-weight:700;font-size:1.02em;margin-top:10px;margin-bottom:4px;">$1</div>');
+
+    // Render Markdown tables (| col | col |)
+    h = h.replace(/((?:\|[^\n\r]+\|(?:\r?\n)?)+)/g, function(match) {
+      const lines = match.trim().split('\n').filter(l => l.trim().startsWith('|'));
+      if (lines.length < 2) return match;
+      let tableHtml = '<div style="overflow-x:auto; margin:14px 0;"><table style="width:100%; border-collapse:collapse; font-size:0.84rem; border:1px solid var(--border); border-radius:8px; overflow:hidden;">';
+      let isHeader = true;
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (line.includes('---')) {
+          isHeader = false;
+          continue;
+        }
+        const cols = line.split('|').slice(1, -1);
+        const tag = isHeader ? 'th' : 'td';
+        const rowBg = isHeader ? 'background:rgba(255,255,255,0.06); font-weight:600; color:var(--text);' : 'background:transparent; border-bottom:1px solid rgba(255,255,255,0.06);';
+        tableHtml += `<tr style="${rowBg}">`;
+        cols.forEach(col => {
+          const cellStyle = isHeader
+            ? 'padding:9px 12px; text-align:left; border:1px solid var(--border);'
+            : 'padding:9px 12px; border:1px solid rgba(255,255,255,0.08); color:var(--text);';
+          tableHtml += `<${tag} style="${cellStyle}">${col.trim()}</${tag}>`;
+        });
+        tableHtml += '</tr>';
+        if (isHeader) isHeader = false;
+      }
+      tableHtml += '</table></div>';
+      return tableHtml;
+    });
+
+    h = h.replace(/^#### (.*)$/gm, '<div style="font-weight:700;font-size:0.92em;margin-top:12px;margin-bottom:4px;color:var(--text);">$1</div>');
+    h = h.replace(/^### (.*)$/gm, '<div style="font-weight:700;font-size:1.02em;margin-top:14px;margin-bottom:6px;color:var(--accent);">$1</div>');
+    h = h.replace(/^## (.*)$/gm, '<div style="font-weight:700;font-size:1.1em;margin-top:16px;margin-bottom:6px;">$1</div>');
     h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     h = h.replace(/\*(.*?)\*/g, '<em>$1</em>');
-    h = h.replace(/(^|\n)- (.*)/g, '$1<div style="padding-left:14px;">• $2</div>');
+    h = h.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;font-size:0.86em;color:#e4e4e7;">$1</code>');
+    h = h.replace(/(^|\n)- (.*)/g, '$1<div style="padding-left:14px;margin-bottom:3px;">• $2</div>');
+    h = h.replace(/(^|\n)(\d+)\. (.*)/g, '$1<div style="padding-left:14px;margin-bottom:3px;">$2. $3</div>');
     return h;
   }
 
@@ -1070,7 +1139,13 @@
       level = 'medium';
       icon = 'ℹ️';
     }
-    return `<div class="confidence-badge ${level}" title="Confidence score based on standard alignment">${icon} ${pct}% Confidence</div>`;
+    return `<div class="confidence-badge ${level}" title="Confidence metric aligned to official standard clauses">${icon} ${pct}% Confidence</div>`;
+  }
+
+  // ── EXPLANATION PILL BUILDER ──
+  function buildExplanationPill(exp) {
+    if (!exp) return '';
+    return `<div class="explanation-pill" title="${escapeHtml(exp)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Evidence source</span></div>`;
   }
 
   // ── DOM APPEND HELPERS ──
@@ -1102,6 +1177,7 @@
       : '';
 
     const confBadge = buildConfidenceBadge(meta ? meta.confidence : null);
+    const expPill = buildExplanationPill(meta ? meta.explanation : null);
 
     row.innerHTML = `
       <div class="avatar bot-avatar">CB</div>
@@ -1109,6 +1185,7 @@
         <div class="badge-row">
           ${agentBadge}
           ${confBadge}
+          ${expPill}
         </div>
         <div class="bubble">${renderMarkdown(text)}${citationsHtml}</div>
       </div>
@@ -1122,7 +1199,7 @@
     scrollToBottom();
   }
 
-  function appendBotTyping() {
+  function appendBotTyping(label = "ComplyBot multi-agent swarm analyzing query...") {
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
     row.className = 'row bot';
@@ -1132,7 +1209,7 @@
       <div class="bubble-wrap">
         <div class="bubble" style="display:flex; flex-direction:column; gap:6px;">
           <div class="typing"><span></span><span></span><span></span></div>
-          <span style="font-size:0.75rem; color:var(--text-muted); letter-spacing:0.01em;">ComplyBot multi-agent swarm analyzing query...</span>
+          <span style="font-size:0.75rem; color:var(--text-muted); letter-spacing:0.01em;">${escapeHtml(label)}</span>
         </div>
       </div>
     `;
@@ -1141,7 +1218,7 @@
     return row;
   }
 
-  // ── SEND QUERY (WITH MULTI-TURN MEMORY & CONFIDENCE) ──
+  // ── SEND QUERY ──
   async function sendQuery() {
     const input = document.getElementById('query-input');
     const query = input.value.trim();
@@ -1181,7 +1258,6 @@
         throw new Error(data.detail || data.answer || `Server returned ${response.status}`);
       }
 
-      // Update active conversation ID from backend response
       if (data.conversation_id) {
         activeDbConversationId = data.conversation_id;
       }
@@ -1190,7 +1266,8 @@
       const meta = {
         agent: data.agent,
         citations: data.citations || [],
-        confidence: data.confidence
+        confidence: data.confidence,
+        explanation: data.explanation
       };
 
       let citationsHtml = '';
@@ -1203,6 +1280,7 @@
       const bubbleStyle = isError ? 'style="border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.08);"' : '';
       const badgeStyle = isError ? 'style="color:#ef4444;"' : '';
       const confBadge = buildConfidenceBadge(data.confidence);
+      const expPill = buildExplanationPill(data.explanation);
 
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
@@ -1210,12 +1288,12 @@
           <div class="badge-row">
             <div class="agent-badge" ${badgeStyle}>${escapeHtml(data.agent || 'ComplyBot')}</div>
             ${confBadge}
+            ${expPill}
           </div>
           <div class="bubble" ${bubbleStyle}>${renderMarkdown(data.answer || '')}${citationsHtml}</div>
         </div>
       `;
 
-      // Refresh conversations list in background so new chat appears in sidebar
       loadConversations();
 
     } catch (err) {
@@ -1226,13 +1304,90 @@
           <div class="bubble" style="border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); color:#fca5a5;">
             <strong>Unable to complete request:</strong><br/>
             ${escapeHtml(err.message || 'Could not connect to the backend server.')}<br/>
-            <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:inline-block;">Ensure the FastAPI backend server and Ollama are active.</span>
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:inline-block;">Ensure the backend server and Ollama are active.</span>
           </div>
         </div>
       `;
       console.error('ComplyBot error:', err);
     } finally {
       document.getElementById('send-btn').disabled = false;
+      scrollToBottom();
+    }
+  }
+
+  // ── FILE / LABEL OCR UPLOAD ──
+  async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    hideEmptyState();
+    appendUserMessage(`📷 Uploaded label image for compliance audit: ${file.name}`);
+    const typingRow = appendBotTyping("Document Analysis Agent running OCR & BIS rule validation...");
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (activeDbConversationId) formData.append('conversation_id', activeDbConversationId);
+      if (!currentUser) formData.append('session_id', getGuestSessionId());
+
+      const token = localStorage.getItem(TOKEN_KEY);
+      const headers = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const res = await fetch(API_UPLOAD, {
+        method: 'POST',
+        headers: headers,
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Upload audit failed');
+
+      const chatData = data.chat_response;
+      if (chatData.conversation_id) activeDbConversationId = chatData.conversation_id;
+
+      const meta = {
+        agent: chatData.agent,
+        citations: chatData.citations || [],
+        confidence: chatData.confidence,
+        explanation: chatData.explanation
+      };
+
+      let citationsHtml = '';
+      if (meta.citations && meta.citations.length) {
+        citationsHtml = `<div class="citations"><div class="cite-label">Verified Standards & Sources</div>${
+          meta.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
+        }</div>`;
+      }
+
+      const confBadge = buildConfidenceBadge(meta.confidence);
+      const expPill = buildExplanationPill(meta.explanation);
+
+      typingRow.innerHTML = `
+        <div class="avatar bot-avatar">CB</div>
+        <div class="bubble-wrap">
+          <div class="badge-row">
+            <div class="agent-badge">${escapeHtml(chatData.agent)}</div>
+            ${confBadge}
+            ${expPill}
+          </div>
+          <div class="bubble">${renderMarkdown(chatData.answer)}${citationsHtml}</div>
+        </div>
+      `;
+
+      loadConversations();
+    } catch (err) {
+      typingRow.innerHTML = `
+        <div class="avatar bot-avatar">CB</div>
+        <div class="bubble-wrap">
+          <div class="agent-badge" style="color:#ef4444;">Audit Error</div>
+          <div class="bubble" style="border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); color:#fca5a5;">
+            <strong>Unable to audit document:</strong><br/>
+            ${escapeHtml(err.message)}
+          </div>
+        </div>
+      `;
+    } finally {
+      event.target.value = '';
       scrollToBottom();
     }
   }
