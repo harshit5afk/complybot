@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ComplyBot — BIS Assistant</title>
+<title>ComplyBot — BIS AI Assistant</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -24,6 +24,7 @@
     --bot-bubble: #1c1c1f;
     --user-bubble: #22c55e;
     --danger: #ef4444;
+    --warning: #f59e0b;
     --radius: 12px;
   }
 
@@ -38,8 +39,8 @@
 
   /* ── SIDEBAR ── */
   #sidebar {
-    width: 280px;
-    min-width: 280px;
+    width: 290px;
+    min-width: 290px;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border);
     display: flex;
@@ -47,7 +48,7 @@
     transition: margin-left 0.25s ease, opacity 0.25s ease;
   }
   #sidebar.collapsed {
-    margin-left: -280px;
+    margin-left: -290px;
     opacity: 0;
     pointer-events: none;
   }
@@ -163,12 +164,70 @@
   .history-item:hover .hi-delete { opacity: 1; }
   .history-item .hi-delete:hover { color: var(--danger); }
 
-  .sidebar-footer {
+  /* User profile in sidebar footer */
+  .sidebar-user {
     padding: 12px 16px;
     border-top: 1px solid var(--border);
-    font-size: 0.72rem;
+    background: rgba(24,24,27,0.7);
+  }
+  .user-badge-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    overflow: hidden;
+  }
+  .user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .user-meta {
+    overflow: hidden;
+  }
+  .user-name {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .user-role {
+    font-size: 0.68rem;
     color: var(--text-muted);
-    text-align: center;
+  }
+  .auth-btn-trigger {
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-hover);
+    color: var(--text);
+    font-size: 0.8rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .auth-btn-trigger:hover {
+    border-color: var(--accent);
+    color: var(--accent);
   }
 
   /* ── MAIN PANEL ── */
@@ -243,14 +302,21 @@
     color: #d4d4d8;
   }
 
-  .bubble-wrap { display: flex; flex-direction: column; max-width: 78%; min-width: 0; }
+  .bubble-wrap { display: flex; flex-direction: column; max-width: 82%; min-width: 0; }
   .row.user .bubble-wrap { align-items: flex-end; }
+
+  .badge-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
 
   .agent-badge {
     font-size: 0.68rem;
     color: var(--accent);
     font-weight: 600;
-    margin-bottom: 5px;
     display: flex; align-items: center; gap: 5px;
   }
   .agent-badge::before {
@@ -260,6 +326,40 @@
     background: var(--accent);
     display: inline-block;
     box-shadow: 0 0 6px var(--accent-glow);
+  }
+
+  .confidence-badge {
+    font-size: 0.66rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .confidence-badge.high {
+    background: rgba(34,197,94,0.14);
+    color: #4ade80;
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+  .confidence-badge.medium {
+    background: rgba(245,158,11,0.14);
+    color: #fbbf24;
+    border: 1px solid rgba(245,158,11,0.25);
+  }
+  .confidence-badge.low {
+    background: rgba(239,68,68,0.14);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,0.25);
+  }
+
+  .memory-badge {
+    font-size: 0.64rem;
+    color: #93c5fd;
+    background: rgba(59,130,246,0.12);
+    border: 1px solid rgba(59,130,246,0.25);
+    padding: 2px 6px;
+    border-radius: 999px;
   }
 
   .bubble {
@@ -407,7 +507,6 @@
   #empty-state h2 { color: var(--text); font-size: 1.1rem; margin-bottom: 6px; font-weight: 600; }
   #empty-state p { font-size: 0.84rem; line-height: 1.5; }
 
-  /* ── NO HISTORY STATE ── */
   .no-history {
     text-align: center;
     padding: 32px 16px;
@@ -416,12 +515,105 @@
   }
   .no-history svg { opacity: 0.3; margin-bottom: 8px; }
 
+  /* ── AUTH MODAL ── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: #18181b;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 90%;
+    max-width: 420px;
+    padding: 24px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .modal-title { font-size: 1.1rem; font-weight: 700; }
+  .modal-tabs {
+    display: flex;
+    gap: 8px;
+    background: #27272a;
+    padding: 4px;
+    border-radius: 10px;
+    margin-bottom: 18px;
+  }
+  .modal-tab {
+    flex: 1;
+    padding: 7px;
+    border: none;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .modal-tab.active { background: #18181b; color: var(--text); }
+  .form-group { margin-bottom: 14px; }
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .form-input {
+    width: 100%;
+    background: #0f0f11;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-submit-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #0a0a0a;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 11px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: transform 0.1s, opacity 0.15s;
+  }
+  .form-submit-btn:hover { transform: scale(1.02); }
+  .form-submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .modal-error {
+    color: var(--danger);
+    font-size: 0.75rem;
+    margin-top: 8px;
+    display: none;
+  }
+
   /* ── RESPONSIVE ── */
   @media (max-width: 768px) {
     #sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 100; }
-    #sidebar.collapsed { margin-left: -280px; }
+    #sidebar.collapsed { margin-left: -290px; }
     #toggle-sidebar-btn { display: flex !important; }
-    .bubble-wrap { max-width: 88%; }
+    .bubble-wrap { max-width: 90%; }
   }
 </style>
 </head>
@@ -444,11 +636,12 @@
     New Chat
   </button>
 
-  <div class="sidebar-section-title">Chat History</div>
+  <div class="sidebar-section-title">Saved Compliance Threads</div>
   <div id="history-list"></div>
 
-  <div class="sidebar-footer">
-    SIH26107 / Infothon 7.0 PS #04
+  <!-- User Profile Section -->
+  <div class="sidebar-user" id="sidebar-user-section">
+    <!-- Rendered dynamically by updateAuthUI() -->
   </div>
 </div>
 
@@ -461,7 +654,7 @@
       </button>
       <div>
         <div class="header-title" id="header-chat-title">ComplyBot</div>
-        <div class="header-subtitle">Indian Standards & BIS Services — PS #04</div>
+        <div class="header-subtitle">Indian Standards & BIS Compliance Assistant — PS #04</div>
       </div>
     </div>
     <div class="lang-switch">
@@ -475,7 +668,7 @@
     <div id="empty-state">
       <div class="big-avatar">CB</div>
       <h2>Ask me about BIS standards or certification</h2>
-      <p>I'll route your question to the right specialist — standards lookup, certification guidance, hallmarking, or lab recommendations — and always show my sources.</p>
+      <p>I'll route your question to the right specialist — standards lookup, certification guidance, hallmarking, or lab recommendations — with verifiable sources, confidence ratings, and multi-turn conversation memory.</p>
     </div>
   </div>
 
@@ -493,142 +686,307 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
       </button>
     </div>
-    <div class="footer-note">ComplyBot gives source-backed guidance — always verify product-specific requirements with BIS before acting.</div>
+    <div class="footer-note">ComplyBot provides regulatory intelligence with verified source citations — verify product-specific notices with BIS before filing applications.</div>
+  </div>
+</div>
+
+<!-- ── AUTH MODAL ── -->
+<div class="modal-overlay" id="auth-modal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div class="modal-title" id="auth-modal-title">Sign In</div>
+      <button class="btn-icon" onclick="closeAuthModal()" title="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <div class="modal-tabs">
+      <button class="modal-tab active" id="tab-login" onclick="switchAuthTab('login')">Log In</button>
+      <button class="modal-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+    </div>
+
+    <div id="auth-form">
+      <div class="form-group" id="group-name" style="display: none;">
+        <label class="form-label">Full Name or Company</label>
+        <input type="text" class="form-input" id="auth-name" placeholder="e.g. Rahul Sharma / Acme Ltd">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-input" id="auth-email" placeholder="name@domain.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <input type="password" class="form-input" id="auth-password" placeholder="••••••••">
+      </div>
+      <div class="modal-error" id="auth-error"></div>
+      <button class="form-submit-btn" id="auth-submit-btn" onclick="submitAuth()">Sign In</button>
+    </div>
   </div>
 </div>
 
 <script>
-  // ── STATE ──
-  let currentLang = 'en';
-  let activeSessionId = null;
-  const API_URL = '/chat';
-  const STORAGE_KEY = 'complybot_sessions';
+  // ── CONSTANTS & STATE ──
+  const API_CHAT = '/chat';
+  const API_CONVERSATIONS = '/conversations';
+  const API_LOGIN = '/login';
+  const API_REGISTER = '/register';
+  const API_ME = '/me';
 
-  // ── STORAGE HELPERS ──
-  function loadSessions() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
-    catch { return []; }
+  const TOKEN_KEY = 'complybot_auth_token';
+  const USER_KEY = 'complybot_user';
+  const GUEST_SESSION_KEY = 'complybot_guest_session_id';
+
+  let currentLang = 'en';
+  let activeDbConversationId = null;
+  let currentAuthTab = 'login';
+  let currentUser = null;
+  let conversationsList = [];
+
+  // ── GUEST SESSION ID ──
+  function getGuestSessionId() {
+    let sid = localStorage.getItem(GUEST_SESSION_KEY);
+    if (!sid) {
+      sid = 'guest_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+      localStorage.setItem(GUEST_SESSION_KEY, sid);
+    }
+    return sid;
   }
-  function saveSessions(sessions) {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+
+  // ── AUTH HEADERS ──
+  function getAuthHeaders() {
+    const headers = { 'Content-Type': 'application/json' };
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   }
-  function getSession(id) {
-    return loadSessions().find(s => s.id === id) || null;
+
+  // ── LOAD USER FROM STORAGE ──
+  function initUser() {
+    try {
+      const stored = localStorage.getItem(USER_KEY);
+      if (stored) {
+        currentUser = JSON.parse(stored);
+        if (currentUser.preferred_lang) setLang(currentUser.preferred_lang);
+      }
+    } catch (e) {
+      currentUser = null;
+    }
+    updateAuthUI();
   }
-  function updateSession(id, updates) {
-    const sessions = loadSessions();
-    const idx = sessions.findIndex(s => s.id === id);
-    if (idx !== -1) {
-      Object.assign(sessions[idx], updates);
-      saveSessions(sessions);
+
+  function updateAuthUI() {
+    const section = document.getElementById('sidebar-user-section');
+    if (currentUser) {
+      const initial = (currentUser.display_name || currentUser.email || 'U')[0].toUpperCase();
+      section.innerHTML = `
+        <div class="user-badge-container">
+          <div class="user-info">
+            <div class="user-avatar">${escapeHtml(initial)}</div>
+            <div class="user-meta">
+              <div class="user-name" title="${escapeHtml(currentUser.display_name || currentUser.email)}">${escapeHtml(currentUser.display_name || currentUser.email)}</div>
+              <div class="user-role">${currentUser.role === 'admin' ? '🛡️ Administrator' : '✅ Verified Account'}</div>
+            </div>
+          </div>
+          <button class="btn-icon" onclick="logout()" title="Sign Out">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </button>
+        </div>
+      `;
+    } else {
+      section.innerHTML = `
+        <button class="auth-btn-trigger" onclick="openAuthModal('login')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span>Sign In / Create Account</span>
+        </button>
+      `;
     }
   }
-  function deleteSession(id) {
-    saveSessions(loadSessions().filter(s => s.id !== id));
-    if (activeSessionId === id) newChat();
-    renderHistory();
+
+  // ── AUTH MODAL LOGIC ──
+  function openAuthModal(tab = 'login') {
+    switchAuthTab(tab);
+    document.getElementById('auth-error').style.display = 'none';
+    document.getElementById('auth-modal').classList.add('active');
   }
 
-  // ── GENERATE ID ──
-  function genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
-
-  // ── CREATE SESSION ──
-  function createSession(firstQuery) {
-    const title = firstQuery.length > 42 ? firstQuery.slice(0, 42) + '…' : firstQuery;
-    const session = {
-      id: genId(),
-      title: title,
-      createdAt: new Date().toISOString(),
-      messages: []
-    };
-    const sessions = loadSessions();
-    sessions.unshift(session);
-    saveSessions(sessions);
-    return session;
+  function closeAuthModal() {
+    document.getElementById('auth-modal').classList.remove('active');
   }
 
-  // ── ADD MESSAGE TO SESSION ──
-  function addMessage(sessionId, role, text, meta) {
-    const sessions = loadSessions();
-    const session = sessions.find(s => s.id === sessionId);
-    if (!session) return;
-    session.messages.push({ role, text, meta: meta || null, ts: new Date().toISOString() });
-    saveSessions(sessions);
+  function switchAuthTab(tab) {
+    currentAuthTab = tab;
+    document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+    document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+    document.getElementById('group-name').style.display = tab === 'register' ? 'block' : 'none';
+    document.getElementById('auth-modal-title').textContent = tab === 'register' ? 'Create Account' : 'Sign In';
+    document.getElementById('auth-submit-btn').textContent = tab === 'register' ? 'Create Account' : 'Sign In';
+    document.getElementById('auth-error').style.display = 'none';
   }
 
-  // ── RENDER HISTORY SIDEBAR ──
+  async function submitAuth() {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value.trim();
+    const displayName = document.getElementById('auth-name').value.trim();
+    const errorEl = document.getElementById('auth-error');
+    const submitBtn = document.getElementById('auth-submit-btn');
+
+    if (!email || !password) {
+      errorEl.textContent = 'Please provide both email and password.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    submitBtn.disabled = true;
+    errorEl.style.display = 'none';
+
+    try {
+      const url = currentAuthTab === 'register' ? API_REGISTER : API_LOGIN;
+      const body = { email, password };
+      if (currentAuthTab === 'register') {
+        body.display_name = displayName;
+        body.preferred_lang = currentLang;
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.detail || 'Authentication failed');
+      }
+
+      localStorage.setItem(TOKEN_KEY, data.token);
+      currentUser = {
+        id: data.user_id,
+        email: data.email,
+        display_name: data.display_name,
+        preferred_lang: data.preferred_lang,
+        role: data.role
+      };
+      localStorage.setItem(USER_KEY, JSON.stringify(currentUser));
+
+      if (currentUser.preferred_lang) setLang(currentUser.preferred_lang);
+      updateAuthUI();
+      closeAuthModal();
+      loadConversations();
+
+    } catch (err) {
+      errorEl.textContent = err.message || 'Error occurred';
+      errorEl.style.display = 'block';
+    } finally {
+      submitBtn.disabled = false;
+    }
+  }
+
+  function logout() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    currentUser = null;
+    activeDbConversationId = null;
+    updateAuthUI();
+    newChat();
+    loadConversations();
+  }
+
+  // ── SERVER CONVERSATION LOGIC ──
+  async function loadConversations() {
+    try {
+      const sessionParam = currentUser ? '' : `?session_id=${encodeURIComponent(getGuestSessionId())}`;
+      const res = await fetch(`${API_CONVERSATIONS}${sessionParam}`, {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) return;
+      conversationsList = await res.json();
+      renderHistory();
+    } catch (e) {
+      console.warn('Could not fetch server conversations:', e);
+    }
+  }
+
   function renderHistory() {
     const list = document.getElementById('history-list');
-    const sessions = loadSessions();
-
-    if (sessions.length === 0) {
+    if (!conversationsList || conversationsList.length === 0) {
       list.innerHTML = `
         <div class="no-history">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          <div>No conversations yet.<br/>Start a new chat!</div>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <div>No conversations yet.<br/>Start a new compliance query!</div>
         </div>`;
       return;
     }
 
-    // Group by date
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    const groups = { 'Today': [], 'Yesterday': [], 'Previous': [] };
-
-    sessions.forEach(s => {
-      const d = new Date(s.createdAt).toDateString();
-      if (d === today) groups['Today'].push(s);
-      else if (d === yesterday) groups['Yesterday'].push(s);
-      else groups['Previous'].push(s);
-    });
-
     let html = '';
-    for (const [label, items] of Object.entries(groups)) {
-      if (items.length === 0) continue;
-      html += `<div class="sidebar-section-title" style="padding-left:10px;">${label}</div>`;
-      items.forEach(s => {
-        const isActive = s.id === activeSessionId ? ' active' : '';
-        html += `
-          <div class="history-item${isActive}" onclick="loadSession('${s.id}')" title="${escapeHtml(s.title)}">
-            <div class="hi-icon">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-            </div>
-            <div class="hi-label">${escapeHtml(s.title)}</div>
-            <button class="hi-delete" onclick="event.stopPropagation(); deleteSession('${s.id}')" title="Delete">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            </button>
-          </div>`;
-      });
-    }
+    conversationsList.forEach(c => {
+      const isActive = c.id === activeDbConversationId ? ' active' : '';
+      html += `
+        <div class="history-item${isActive}" onclick="loadConversation(${c.id})" title="${escapeHtml(c.title)}">
+          <div class="hi-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <div class="hi-label">${escapeHtml(c.title)}</div>
+          <button class="hi-delete" onclick="event.stopPropagation(); deleteConversation(${c.id})" title="Delete conversation">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>`;
+    });
     list.innerHTML = html;
   }
 
-  // ── LOAD SESSION ──
-  function loadSession(id) {
-    const session = getSession(id);
-    if (!session) return;
-    activeSessionId = id;
+  async function loadConversation(id) {
+    try {
+      const res = await fetch(`${API_CONVERSATIONS}/${id}`, {
+        headers: getAuthHeaders()
+      });
+      if (!res.ok) throw new Error('Failed to load conversation');
+      const data = await res.json();
 
-    const chat = document.getElementById('chat');
-    chat.innerHTML = '';
-    hideEmptyState();
+      activeDbConversationId = data.id;
+      document.getElementById('header-chat-title').textContent = data.title || 'ComplyBot';
 
-    session.messages.forEach(msg => {
-      if (msg.role === 'user') {
-        appendUserMessageDirect(msg.text);
-      } else {
-        appendBotMessageDirect(msg.text, msg.meta);
-      }
-    });
+      const chat = document.getElementById('chat');
+      chat.innerHTML = '';
+      hideEmptyState();
 
-    document.getElementById('header-chat-title').textContent = session.title;
-    renderHistory();
-    scrollToBottom();
+      data.messages.forEach(msg => {
+        if (msg.role === 'user') {
+          appendUserMessageDirect(msg.content);
+        } else {
+          appendBotMessageDirect(msg.content, {
+            agent: msg.agent,
+            citations: msg.citations,
+            confidence: msg.confidence
+          });
+        }
+      });
+
+      renderHistory();
+      scrollToBottom();
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  // ── NEW CHAT ──
+  async function deleteConversation(id) {
+    try {
+      await fetch(`${API_CONVERSATIONS}/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      if (activeDbConversationId === id) {
+        newChat();
+      }
+      loadConversations();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
   function newChat() {
-    activeSessionId = null;
+    activeDbConversationId = null;
     document.getElementById('chat').innerHTML = '';
     document.getElementById('empty-state').style.display = '';
     document.getElementById('suggestions').style.display = '';
@@ -636,12 +994,11 @@
     renderHistory();
   }
 
-  // ── SIDEBAR TOGGLE ──
+  // ── UI HELPERS ──
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('collapsed');
   }
 
-  // ── LANG ──
   function setLang(lang) {
     currentLang = lang;
     document.getElementById('lang-en').classList.toggle('active', lang === 'en');
@@ -674,6 +1031,7 @@
   }
 
   function escapeHtml(str) {
+    if (!str) return '';
     const div = document.createElement('div');
     div.innerText = str;
     return div.innerHTML;
@@ -689,6 +1047,7 @@
     h = h.replace(/^### (.*)$/gm, '<div style="font-weight:700;margin-top:10px;margin-bottom:4px;">$1</div>');
     h = h.replace(/^## (.*)$/gm, '<div style="font-weight:700;font-size:1.02em;margin-top:10px;margin-bottom:4px;">$1</div>');
     h = h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    h = h.replace(/\*(.*?)\*/g, '<em>$1</em>');
     h = h.replace(/(^|\n)- (.*)/g, '$1<div style="padding-left:14px;">• $2</div>');
     return h;
   }
@@ -698,13 +1057,29 @@
     c.scrollTop = c.scrollHeight;
   }
 
-  // ── DOM HELPERS (no storage, just render) ──
+  // ── CONFIDENCE BADGE BUILDER ──
+  function buildConfidenceBadge(conf) {
+    if (conf === undefined || conf === null) return '';
+    const pct = Math.round(conf * 100);
+    let level = 'high';
+    let icon = '✓';
+    if (pct < 50) {
+      level = 'low';
+      icon = '⚠️';
+    } else if (pct < 80) {
+      level = 'medium';
+      icon = 'ℹ️';
+    }
+    return `<div class="confidence-badge ${level}" title="Confidence score based on standard alignment">${icon} ${pct}% Confidence</div>`;
+  }
+
+  // ── DOM APPEND HELPERS ──
   function appendUserMessageDirect(text) {
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
     row.className = 'row user';
     row.innerHTML = `
-      <div class="avatar user-avatar">U</div>
+      <div class="avatar user-avatar">${currentUser ? escapeHtml((currentUser.display_name || 'U')[0].toUpperCase()) : 'U'}</div>
       <div class="bubble-wrap"><div class="bubble">${escapeHtml(text)}</div></div>
     `;
     chat.appendChild(row);
@@ -717,7 +1092,7 @@
 
     let citationsHtml = '';
     if (meta && meta.citations && meta.citations.length) {
-      citationsHtml = `<div class="citations"><div class="cite-label">Sources</div>${
+      citationsHtml = `<div class="citations"><div class="cite-label">Verified Standards & Sources</div>${
         meta.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
       }</div>`;
     }
@@ -726,24 +1101,27 @@
       ? `<div class="agent-badge">${escapeHtml(meta.agent)}</div>`
       : '';
 
+    const confBadge = buildConfidenceBadge(meta ? meta.confidence : null);
+
     row.innerHTML = `
       <div class="avatar bot-avatar">CB</div>
       <div class="bubble-wrap">
-        ${agentBadge}
+        <div class="badge-row">
+          ${agentBadge}
+          ${confBadge}
+        </div>
         <div class="bubble">${renderMarkdown(text)}${citationsHtml}</div>
       </div>
     `;
     chat.appendChild(row);
   }
 
-  // ── CHAT: USER MESSAGE ──
   function appendUserMessage(text) {
     hideEmptyState();
     appendUserMessageDirect(text);
     scrollToBottom();
   }
 
-  // ── CHAT: BOT TYPING ──
   function appendBotTyping() {
     const chat = document.getElementById('chat');
     const row = document.createElement('div');
@@ -754,7 +1132,7 @@
       <div class="bubble-wrap">
         <div class="bubble" style="display:flex; flex-direction:column; gap:6px;">
           <div class="typing"><span></span><span></span><span></span></div>
-          <span style="font-size:0.75rem; color:var(--text-muted); letter-spacing:0.01em;">ComplyBot is thinking...</span>
+          <span style="font-size:0.75rem; color:var(--text-muted); letter-spacing:0.01em;">ComplyBot multi-agent swarm analyzing query...</span>
         </div>
       </div>
     `;
@@ -763,22 +1141,13 @@
     return row;
   }
 
-  // ── SEND QUERY ──
+  // ── SEND QUERY (WITH MULTI-TURN MEMORY & CONFIDENCE) ──
   async function sendQuery() {
     const input = document.getElementById('query-input');
     const query = input.value.trim();
     if (!query) return;
 
-    // Create session on first message
-    if (!activeSessionId) {
-      const session = createSession(query);
-      activeSessionId = session.id;
-      document.getElementById('header-chat-title').textContent = session.title;
-      renderHistory();
-    }
-
     appendUserMessage(query);
-    addMessage(activeSessionId, 'user', query);
 
     input.value = '';
     input.style.height = 'auto';
@@ -787,10 +1156,17 @@
     const typingRow = appendBotTyping();
 
     try {
-      const response = await fetch(API_URL, {
+      const payload = {
+        query: query,
+        language: currentLang,
+        conversation_id: activeDbConversationId,
+        session_id: currentUser ? null : getGuestSessionId()
+      };
+
+      const response = await fetch(API_CHAT, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: query, language: currentLang }),
+        headers: getAuthHeaders(),
+        body: JSON.stringify(payload),
       });
 
       let data;
@@ -805,38 +1181,52 @@
         throw new Error(data.detail || data.answer || `Server returned ${response.status}`);
       }
 
+      // Update active conversation ID from backend response
+      if (data.conversation_id) {
+        activeDbConversationId = data.conversation_id;
+      }
+
       const isError = data.domain === 'error';
-      const meta = { agent: data.agent, citations: data.citations || [] };
+      const meta = {
+        agent: data.agent,
+        citations: data.citations || [],
+        confidence: data.confidence
+      };
 
       let citationsHtml = '';
       if (data.citations && data.citations.length) {
-        citationsHtml = `<div class="citations"><div class="cite-label">Sources</div>${
+        citationsHtml = `<div class="citations"><div class="cite-label">Verified Standards & Sources</div>${
           data.citations.map(c => `<div class="cite-row">${linkify(c)}</div>`).join('')
         }</div>`;
       }
 
       const bubbleStyle = isError ? 'style="border: 1px solid rgba(239,68,68,0.3); background: rgba(239,68,68,0.08);"' : '';
-      const badgeStyle = isError ? 'style="background: rgba(239,68,68,0.2); color:#ef4444;"' : '';
+      const badgeStyle = isError ? 'style="color:#ef4444;"' : '';
+      const confBadge = buildConfidenceBadge(data.confidence);
 
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
         <div class="bubble-wrap">
-          <div class="agent-badge" ${badgeStyle}>${escapeHtml(data.agent || 'ComplyBot')}</div>
+          <div class="badge-row">
+            <div class="agent-badge" ${badgeStyle}>${escapeHtml(data.agent || 'ComplyBot')}</div>
+            ${confBadge}
+          </div>
           <div class="bubble" ${bubbleStyle}>${renderMarkdown(data.answer || '')}${citationsHtml}</div>
         </div>
       `;
 
-      addMessage(activeSessionId, 'bot', data.answer, meta);
+      // Refresh conversations list in background so new chat appears in sidebar
+      loadConversations();
 
     } catch (err) {
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
         <div class="bubble-wrap">
-          <div class="agent-badge" style="background:rgba(239,68,68,0.2); color:#ef4444;">Connection Alert</div>
+          <div class="agent-badge" style="color:#ef4444;">System Alert</div>
           <div class="bubble" style="border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.08); color:#fca5a5;">
             <strong>Unable to complete request:</strong><br/>
             ${escapeHtml(err.message || 'Could not connect to the backend server.')}<br/>
-            <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:inline-block;">Ensure the backend server and Ollama are running.</span>
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-top:6px; display:inline-block;">Ensure the FastAPI backend server and Ollama are active.</span>
           </div>
         </div>
       `;
@@ -847,8 +1237,9 @@
     }
   }
 
-  // ── INIT ──
-  renderHistory();
+  // ── INITIALIZATION ──
+  initUser();
+  loadConversations();
 </script>
 
 </body>

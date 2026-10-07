@@ -117,28 +117,18 @@ python run.py
 2. Switch language to **हिं (Hindi)**, click **"Verify hallmark (consumer, Hindi)"**
    — shows the Hallmarking Agent responding in Hindi.
 3. Click **"Find a testing lab"** — shows the Lab Finder Agent listing relevant labs.
-4. Point out the **"Answered by: ..."** badge on each response — this is the
-   visual proof of the multi-agent architecture for judges.
+4. Point out the **"Answered by: ..."** badge, **Confidence Rating (%)**, and verifiable source citations on each response.
+5. Log in or create an account via the sidebar footer to save threads across sessions.
 
-## What's real vs. what's scoped down for the hackathon
+## 🚀 Phase 1 Upgrades (Completed)
 
-- **Real**: local LLM inference via Ollama, real vector embeddings + similarity
-  search via ChromaDB, real multi-agent routing logic, real Hindi translation.
-- **Scoped down (clearly labeled in the code/data)**: the standards corpus is a
-  small set of **original, illustrative knowledge-base articles** (3 product
-  categories) rather than the full BIS standards library — real IS standard
-  documents are copyrighted and licensed by BIS, so for a hackathon demo you
-  write your own accurate summaries instead of reproducing official text
-  verbatim. The lab directory in `data/labs.json` is sample data, clearly
-  marked as such — swap in the real BIS-recognized lab list for production use.
+- **Persistent SQLite Database (`database.py`)**: Stores users, conversations, messages, and uploaded documents with zero external database dependencies.
+- **User Authentication & Profiles (`auth.py`)**: Secure bcrypt password hashing and JWT bearer tokens (`/register`, `/login`, `/me`).
+- **Multi-Turn Conversation Memory**: Preserves context across conversation turns by injecting recent message history into LLM prompts.
+- **Answer Confidence & Transparency Scoring**: Computes vector similarity alignment and displays color-coded confidence badges (`96% Confidence`), with safety warnings for low-confidence queries.
+- **Server-Synchronized Threads**: Full multi-session history with server persistence for both authenticated users and guests.
 
-## Extending this later
+## Extending this further (Phase 2 & 3 Roadmap)
 
-- Add more `.md` files to `data/standards/` and re-run `ingest.py` to grow the
-  corpus (toys, electricals, and food/water are covered now — add textiles,
-  cosmetics, etc.)
-- Add more languages to the `translate()` function in `agents.py`
-- Swap the keyword-based Router for a fully LLM-based classifier once you've
-  validated it's reliable enough (keyword-first was chosen for demo reliability)
-- Add a login + consumer complaint-filing flow (out of scope for this MVP per
-  the implementation plan)
+- **Phase 2**: Structured Compliance Checklist Generator agent, side-by-side Product Compare mode, Label OCR image upload verification, and rich lab filters.
+- **Phase 3**: Admin knowledge management portal, PDF compliance report exports, and hybrid search ranking.

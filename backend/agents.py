@@ -50,16 +50,22 @@ def _get_collection():
     return _collection
 
 
-def _ollama_chat(system_prompt: str, user_prompt: str, retries: int = 2) -> str:
-    """Call Ollama chat with automatic retry on transient failures (e.g. GPU crash)."""
+def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: list[dict] = None, retries: int = 2) -> str:
+    """Call Ollama chat with automatic retry and support for conversation history."""
+    messages = [{"role": "system", "content": system_prompt}]
+    if conversation_history:
+        for item in conversation_history[-6:]:
+            role = item.get("role")
+            content = item.get("content")
+            if role in ("user", "assistant") and content:
+                messages.append({"role": role, "content": content})
+    messages.append({"role": "user", "content": user_prompt})
+
     for attempt in range(retries + 1):
         try:
             response = ollama.chat(
                 model=CHAT_MODEL,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
+                messages=messages,
             )
             return response["message"]["content"].strip()
         except Exception as e:
@@ -117,19 +123,38 @@ def detect_language(query: str) -> str:
 # ---------------------------------------------------------------------------
 # Retriever Agent (standards Q&A + product -> standard recommendation)
 # ---------------------------------------------------------------------------
-def retriever_agent(query: str) -> dict:
+# Retriever Agent (standards Q&A + product -> standard recommendation)
+# ---------------------------------------------------------------------------
+def retriever_agent(query: str, conversation_history: list[dict] = None) -> dict:
     retrieved_chunks = []
     metadatas = []
+    distances = []
     try:
         collection = _get_collection()
         embed_response = ollama.embeddings(model=EMBED_MODEL, prompt=query)
         query_embedding = embed_response["embedding"]
-        results = collection.query(query_embeddings=[query_embedding], n_results=3)
-        retrieved_chunks = results["documents"][0] if results["documents"] else []
-        metadatas = results["metadatas"][0] if results["metadatas"] else []
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=3,
+            include=["documents", "metadatas", "distances"]
+        )
+        retrieved_chunks = results["documents"][0] if results.get("documents") else []
+        metadatas = results["metadatas"][0] if results.get("metadatas") else []
+        distances = results["distances"][0] if results.get("distances") else []
     except Exception:
         retrieved_chunks = []
         metadatas = []
+        distances = []
+
+    # Calculate confidence score based on Chroma distance
+    if distances:
+        best_dist = distances[0]
+        # Cosine distance typically ranges from ~0.2 (very close) to >1.2 (unrelated)
+        confidence = round(max(0.20, min(0.98, 1.0 - (best_dist / 1.4))), 2)
+    elif retrieved_chunks:
+        confidence = 0.70
+    else:
+        confidence = 0.40
 
     if not retrieved_chunks:
         system = (
@@ -137,11 +162,12 @@ def retriever_agent(query: str) -> dict:
             "Answer the user's question about Indian Standards or BIS certification accurately and politely. "
             "If relevant, mention standard numbers (IS numbers)."
         )
-        answer = _ollama_chat(system, query)
+        answer = _ollama_chat(system, query, conversation_history=conversation_history)
         return {
             "agent": "Retriever Agent",
             "answer": answer,
             "citations": ["Bureau of Indian Standards (BIS) Portal"],
+            "confidence": confidence,
         }
 
     context_block = "\n\n".join(
@@ -151,22 +177,34 @@ def retriever_agent(query: str) -> dict:
 
     system = (
         "You are the Retriever Agent for ComplyBot, a BIS (Bureau of Indian Standards) assistant. "
-        "Answer the user's question using ONLY the provided context below. "
+        "Answer the user's question using ONLY the provided context below and any previous dialogue context. "
         "Always cite the source document and section at the end of your answer. "
         "If the context does not contain the answer, say you don't have that information "
         "rather than guessing."
     )
     user = f"Context:\n{context_block}\n\nQuestion: {query}"
-    answer = _ollama_chat(system, user)
+    answer = _ollama_chat(system, user, conversation_history=conversation_history)
+
+    # Fallback advisory when confidence is low
+    if confidence < 0.45:
+        answer = (
+            "⚠️ Note: Low confidence score on exact clause match. Please confirm the product category or consult official BIS publications.\n\n"
+            + answer
+        )
 
     citations = [f"{m['source']} — {m['section']}" for m in metadatas]
-    return {"agent": "Retriever Agent", "answer": answer, "citations": citations}
+    return {
+        "agent": "Retriever Agent",
+        "answer": answer,
+        "citations": citations,
+        "confidence": confidence,
+    }
 
 
 # ---------------------------------------------------------------------------
 # Certification & Licensing Agent
 # ---------------------------------------------------------------------------
-def certification_agent(query: str) -> dict:
+def certification_agent(query: str, conversation_history: list[dict] = None) -> dict:
     # Find the most relevant scheme by simple keyword overlap against applies_to
     q_lower = query.lower()
     best_match = None
@@ -180,7 +218,7 @@ def certification_agent(query: str) -> dict:
 
     if not best_match:
         # Fall back to the Retriever agent, which has fuller document context
-        return retriever_agent(query)
+        return retriever_agent(query, conversation_history=conversation_history)
 
     steps_text = "\n".join(f"{i + 1}. {step}" for i, step in enumerate(best_match["process_steps"]))
     context = (
@@ -196,7 +234,7 @@ def certification_agent(query: str) -> dict:
         "Explain the certification scheme and process clearly to the user based on the "
         "structured data provided. Keep it practical and step-by-step."
     )
-    answer = _ollama_chat(system, f"Scheme data:\n{context}\n\nUser question: {query}")
+    answer = _ollama_chat(system, f"Scheme data:\n{context}\n\nUser question: {query}", conversation_history=conversation_history)
 
     citation = f"BIS Certification Scheme Database — {best_match['scheme_name']}"
     if best_match.get("source_url"):
@@ -206,13 +244,14 @@ def certification_agent(query: str) -> dict:
         "agent": "Certification & Licensing Agent",
         "answer": answer,
         "citations": [citation],
+        "confidence": 0.92,
     }
 
 
 # ---------------------------------------------------------------------------
 # Consumer Query Agent
 # ---------------------------------------------------------------------------
-def consumer_agent(query: str) -> dict:
+def consumer_agent(query: str, conversation_history: list[dict] = None) -> dict:
     system = (
         "You are the Consumer Query Agent for ComplyBot, a BIS assistant. "
         "Answer in simple, plain language suitable for an everyday consumer (not a technical "
@@ -220,11 +259,12 @@ def consumer_agent(query: str) -> dict:
         "mention that consumers can use the BIS CARE app or the National Consumer Helpline "
         "(1915) for complaints. Keep the answer short and reassuring."
     )
-    answer = _ollama_chat(system, query)
+    answer = _ollama_chat(system, query, conversation_history=conversation_history)
     return {
         "agent": "Consumer Query Agent",
         "answer": answer,
         "citations": ["BIS Consumer Services — General Guidance"],
+        "confidence": 0.85,
     }
 
 
@@ -238,14 +278,24 @@ def hallmarking_agent(query: str) -> dict:
         answer = HALLMARKING_RULES["huid_explanation"] + "\n\nTo verify a hallmark:\n" + "\n".join(
             f"- {step}" for step in HALLMARKING_RULES["how_to_verify"]
         )
-        return {"agent": "Hallmarking Agent", "answer": answer, "citations": ["BIS Hallmarking Rules — HUID & Verification"]}
+        return {
+            "agent": "Hallmarking Agent",
+            "answer": answer,
+            "citations": ["BIS Hallmarking Rules — HUID & Verification"],
+            "confidence": 1.0,
+        }
 
     if "silver" in q_lower:
         grades = "\n".join(
             f"- {g['grade']}: {g['description']}" for g in HALLMARKING_RULES["purity_grades_silver"]
         )
         answer = f"Silver purity grades under BIS hallmarking:\n{grades}"
-        return {"agent": "Hallmarking Agent", "answer": answer, "citations": ["BIS Hallmarking Rules — Silver Purity Grades"]}
+        return {
+            "agent": "Hallmarking Agent",
+            "answer": answer,
+            "citations": ["BIS Hallmarking Rules — Silver Purity Grades"],
+            "confidence": 1.0,
+        }
 
     # default: gold purity info
     grades = "\n".join(
@@ -255,7 +305,12 @@ def hallmarking_agent(query: str) -> dict:
         f"Gold purity grades under BIS hallmarking:\n{grades}\n\n"
         f"{HALLMARKING_RULES['jeweller_registration_note']}"
     )
-    return {"agent": "Hallmarking Agent", "answer": answer, "citations": ["BIS Hallmarking Rules — Gold Purity Grades"]}
+    return {
+        "agent": "Hallmarking Agent",
+        "answer": answer,
+        "citations": ["BIS Hallmarking Rules — Gold Purity Grades"],
+        "confidence": 1.0,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -279,6 +334,7 @@ def lab_finder_agent(query: str) -> dict:
         "agent": "Lab Finder Agent",
         "answer": answer,
         "citations": ["BIS Recognized Laboratories Directory (sample data)"],
+        "confidence": 0.95,
     }
 
 
@@ -300,7 +356,7 @@ def translate(text: str, target_lang: str) -> str:
 # ---------------------------------------------------------------------------
 # Top-level entry point used by main.py
 # ---------------------------------------------------------------------------
-def handle_query(query: str, language: str = None) -> dict:
+def handle_query(query: str, language: str = None, conversation_history: list[dict] = None) -> dict:
     try:
         domain = route_query(query)
         lang = language or detect_language(query)
@@ -310,21 +366,23 @@ def handle_query(query: str, language: str = None) -> dict:
         elif domain == "lab_finder":
             result = lab_finder_agent(query)
         elif domain == "certification":
-            result = certification_agent(query)
+            result = certification_agent(query, conversation_history=conversation_history)
         elif domain == "consumer":
-            result = consumer_agent(query)
+            result = consumer_agent(query, conversation_history=conversation_history)
         else:
-            result = retriever_agent(query)
+            result = retriever_agent(query, conversation_history=conversation_history)
 
         result["answer"] = translate(result["answer"], lang)
         result["domain"] = domain
         result["language"] = lang
+        result["confidence"] = result.get("confidence", 0.85)
         return result
     except Exception as e:
         return {
             "agent": "System",
             "domain": "error",
             "language": language or "en",
+            "confidence": 0.0,
             "answer": f"Ollama model error — the local LLM may have crashed. Please try again in a few seconds. (Details: {str(e)[:150]})",
             "citations": [],
         }
