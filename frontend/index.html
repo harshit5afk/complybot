@@ -1255,9 +1255,9 @@
     const eng = engine || '';
     const isGemini = eng.toLowerCase().includes('gemini');
     const badgeClass = isGemini ? 'speed-badge gemini' : 'speed-badge ollama';
-    const icon = isGemini ? '⚡' : '🖥️';
+    const icon = isGemini ? '⚡' : '🛡️';
     const engineLabel = eng ? ` • ${escapeHtml(eng)}` : '';
-    return `<div class="${badgeClass}" title="Response time: ${latency}s (${escapeHtml(eng || 'AI Engine')})">${icon} ${latency}s${engineLabel}</div>`;
+    return `<div class="${badgeClass}" title="Active Engine: ${escapeHtml(eng || 'AI Engine')} | Turnaround: ${latency}s">${icon} ${latency}s${engineLabel}</div>`;
   }
 
   // ── REPORT ACTION BUTTONS BUILDER ──

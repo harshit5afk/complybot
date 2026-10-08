@@ -58,7 +58,7 @@ def _load_env_file():
 _load_env_file()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
-_ACTIVE_ENGINE = "Gemini Flash" if GEMINI_API_KEY else "Ollama Local"
+_ACTIVE_ENGINE = "Gemini Flash (Primary)" if GEMINI_API_KEY else "Ollama Local (Fallback)"
 
 # ---------------------------------------------------------------------------
 # Load structured data once at import time
@@ -155,9 +155,10 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
     }
 
     candidate_models = [
+        "gemini-3.1-flash-lite",
         "gemini-3-flash-preview",
+        "gemini-flash-latest",
         GEMINI_MODEL,
-        "gemini-2.5-flash",
     ]
     models_to_try = []
     for m in candidate_models:
@@ -178,7 +179,7 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
                     parts = candidates[0]["content"].get("parts", [])
                     if parts and "text" in parts[0]:
                         global _ACTIVE_ENGINE
-                        _ACTIVE_ENGINE = "Gemini Flash"
+                        _ACTIVE_ENGINE = "Gemini Flash (Primary)"
                         return parts[0]["text"].strip()
         except urllib.error.HTTPError as e:
             last_err = e
@@ -191,17 +192,17 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
 
 
 def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: list[dict] = None, retries: int = 2) -> str:
-    """Hybrid LLM inference: tries Gemini API first if configured, else runs local Ollama."""
+    """Hybrid LLM inference: Primary is Google Gemini Flash; Secondary is Local Ollama fallback."""
     key = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY)
     if key:
         try:
             return _gemini_chat(system_prompt, user_prompt, conversation_history=conversation_history)
-        except Exception:
-            # Fall back seamlessly to local Ollama if quota or network issue occurs
-            pass
+        except Exception as err:
+            # Fall back seamlessly to local Ollama if quota, timeout, network or server issue occurs
+            print(f"  [⚠️ Hybrid Resilience] Primary engine (Gemini Flash) failed: {err}. Forwarding request to Secondary: Local Ollama ({CHAT_MODEL})...", flush=True)
 
     global _ACTIVE_ENGINE
-    _ACTIVE_ENGINE = "Ollama Local"
+    _ACTIVE_ENGINE = "Ollama Local (Fallback)"
 
     messages = [{"role": "system", "content": system_prompt}]
     if conversation_history:
@@ -223,7 +224,7 @@ def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: lis
             if attempt < retries:
                 time.sleep(2 ** attempt)  # exponential backoff: 1s, 2s
                 continue
-            raise
+            raise RuntimeError(f"Both Primary (Gemini) and Secondary (Ollama) failed. Details: {e}")
 
 
 # ---------------------------------------------------------------------------
@@ -580,7 +581,8 @@ def document_analysis_agent(analysis: dict) -> dict:
             f"Relevant Indian Standard: {', '.join(standards) if standards else 'General BIS Guidelines'}"
         ],
         "confidence": 0.90,
-        "explanation": f"Analyzed label layout and OCR markers with rule-based validation against official BIS marking standards (Score: {score}/100)."
+        "explanation": f"Analyzed label layout and OCR markers with rule-based validation against official BIS marking standards (Score: {score}/100).",
+        "engine": _ACTIVE_ENGINE,
     }
 
 
@@ -640,6 +642,20 @@ You can look up active license holders or apply for certification at the officia
         retrieved_chunks = []
         metadatas = []
         distances = []
+        # Fallback keyword scanning directly from standards files if ChromaDB/Ollama embedding is down
+        standards_dir = os.path.join(DATA_DIR, "standards")
+        if os.path.exists(standards_dir):
+            for fname in os.listdir(standards_dir):
+                if fname.endswith(".md"):
+                    try:
+                        with open(os.path.join(standards_dir, fname), "r", encoding="utf-8") as f:
+                            content = f.read()
+                        keywords = [w for w in q_lower.split() if len(w) > 3]
+                        if any(w in content.lower() for w in keywords):
+                            retrieved_chunks.append(content[:1600])
+                            metadatas.append({"source": fname, "section": "Standards Archive"})
+                    except Exception:
+                        pass
 
     # Calculate confidence score based on Chroma distance
     if distances:
