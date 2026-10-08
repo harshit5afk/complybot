@@ -26,6 +26,7 @@ Each public function returns:
 import os
 import json
 import time
+import urllib.request
 import chromadb
 import ollama
 
@@ -34,6 +35,28 @@ DATA_DIR = os.path.join(os.path.dirname(__file__), "..", "data")
 EMBED_MODEL = "nomic-embed-text"
 CHAT_MODEL = "qwen2.5:3b-instruct"  # ultra-fast and stable on local GPU
 COLLECTION_NAME = "bis_standards"
+
+# Load .env variables (Gemini API key & configuration)
+def _load_env_file():
+    paths = [
+        os.path.join(os.path.dirname(__file__), "..", ".env"),
+        os.path.join(os.path.dirname(__file__), ".env"),
+    ]
+    for p in paths:
+        if os.path.exists(p):
+            try:
+                with open(p, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            os.environ.setdefault(k.strip(), v.strip())
+            except Exception:
+                pass
+
+_load_env_file()
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
 
 # ---------------------------------------------------------------------------
 # Load structured data once at import time
@@ -90,8 +113,73 @@ def _get_collection():
     return _collection
 
 
+def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: list[dict] = None) -> str:
+    """Invokes Google Gemini Cloud API with candidate model fallbacks."""
+    key = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY)
+    if not key:
+        raise ValueError("GEMINI_API_KEY is not configured.")
+
+    contents = []
+    if conversation_history:
+        for item in conversation_history[-6:]:
+            role = "user" if item.get("role") == "user" else "model"
+            content = item.get("content", "")
+            if content:
+                contents.append({"role": role, "parts": [{"text": content}]})
+
+    contents.append({"role": "user", "parts": [{"text": user_prompt}]})
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents,
+        "generationConfig": {"temperature": 0.4},
+    }
+
+    candidate_models = [
+        GEMINI_MODEL,
+        "gemini-3-flash-preview",
+        "gemini-flash-latest",
+        "gemini-pro-latest",
+    ]
+    models_to_try = []
+    for m in candidate_models:
+        if m and m not in models_to_try:
+            models_to_try.append(m)
+
+    data_bytes = json.dumps(payload).encode("utf-8")
+    last_err = None
+
+    for model in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+        req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req, timeout=12) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+                candidates = data.get("candidates", [])
+                if candidates and "content" in candidates[0]:
+                    parts = candidates[0]["content"].get("parts", [])
+                    if parts and "text" in parts[0]:
+                        return parts[0]["text"].strip()
+        except urllib.error.HTTPError as e:
+            last_err = e
+            continue
+        except Exception as e:
+            last_err = e
+            break
+
+    raise last_err or RuntimeError("Gemini generateContent call failed")
+
+
 def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: list[dict] = None, retries: int = 2) -> str:
-    """Call Ollama chat with automatic retry and support for conversation history."""
+    """Hybrid LLM inference: tries Gemini API first if configured, else runs local Ollama."""
+    key = os.environ.get("GEMINI_API_KEY", GEMINI_API_KEY)
+    if key:
+        try:
+            return _gemini_chat(system_prompt, user_prompt, conversation_history=conversation_history)
+        except Exception:
+            # Fall back seamlessly to local Ollama if quota or network issue occurs
+            pass
+
     messages = [{"role": "system", "content": system_prompt}]
     if conversation_history:
         for item in conversation_history[-6:]:

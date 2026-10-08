@@ -32,6 +32,10 @@ chroma_db/
 backend/uploads/
 uploads/
 
+# Environment variables & secrets
+.env
+*.env
+
 # IDE / OS
 .idea/
 .vscode/
