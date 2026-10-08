@@ -109,6 +109,17 @@
       "scope": "Specifies Bacterial Filtration Efficiency (BFE >= 95%), differential pressure (breathability), and splash resistance.",
       "key_clauses": "Clause 5.2 (Bacterial Filtration Efficiency test), Clause 5.3 (Breathability Delta P)",
       "portal_url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/knowyourstandards/indian_standards/isdetails"
+    },
+    {
+      "category": "Safety of Toys (Electric & Non-Electric)",
+      "keywords": ["toy", "toys", "doll", "action figure", "board game", "plastic toy", "plush toy", "soft toy", "khilauna", "khilone"],
+      "is_numbers": ["IS 9873 (Part 1):2019", "IS 9873 (Part 2):2017", "IS 9873 (Part 3):2020", "IS 15644:2006"],
+      "standard_title": "Safety of Toys - Mechanical, Flammability, Chemical & Electrical Safety",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Toys Quality Control Order)",
+      "scope": "Mandatory BIS certification for all toys manufactured or imported into India. Covers physical/mechanical safety (Part 1), flammability (Part 2), toxic heavy metals & phthalates migration (Part 3), and electrical safety for electric toys (IS 15644).",
+      "key_clauses": "IS 9873-1 (Drop test, small parts choke hazard test for age <36m, sharp points), IS 9873-2 (Flame spread rate), IS 9873-3 (Antimony, Arsenic, Barium, Cadmium, Chromium, Lead, Mercury, Selenium migration limits)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
     }
   ]
 }

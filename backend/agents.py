@@ -24,6 +24,7 @@ Each public function returns:
 """
 
 import os
+import re
 import json
 import time
 import urllib.request
@@ -87,18 +88,35 @@ else:
 
 
 def find_standards_catalog_match(query: str) -> dict | None:
-    """Matches query keywords or IS numbers against the master standards catalog."""
+    """Matches query keywords or IS numbers against the master standards catalog with strict token validation."""
     q_lower = query.lower()
+
+    # 1. Match specific product keywords using word boundaries
     for item in STANDARDS_CATALOG:
         for kw in item.get("keywords", []):
-            if kw.lower() in q_lower:
+            kw_low = kw.lower()
+            if re.search(r"\b" + re.escape(kw_low) + r"\b", q_lower):
                 return item
-        if item.get("category", "").lower() in q_lower:
+
+    # 2. Match exact category name
+    for item in STANDARDS_CATALOG:
+        cat_lower = item.get("category", "").lower()
+        if cat_lower and cat_lower in q_lower:
             return item
-        for is_num in item.get("is_numbers", []):
-            clean_is = is_num.lower().replace(":", " ").replace("(", " ").replace(")", " ")
-            if any(part in q_lower for part in clean_is.split() if part.startswith("is")):
-                return item
+
+    # 3. Match numeric IS numbers (e.g. "IS 9873", "IS 4707", "9873")
+    # Strictly extract digits associated with standards — NEVER match the English word "is"
+    is_digits = re.findall(r"\bis\s*[-:]?\s*(\d+)\b", q_lower)
+    standalone_std_nums = re.findall(r"\b(\d{3,5})\b", q_lower)
+    candidate_nums = set(is_digits + standalone_std_nums)
+
+    if candidate_nums:
+        for num in candidate_nums:
+            for item in STANDARDS_CATALOG:
+                for is_num in item.get("is_numbers", []):
+                    if re.search(r"\b" + re.escape(num) + r"\b", is_num):
+                        return item
+
     return None
 
 # Chroma client (lazy-loaded so the module can be imported safely)
@@ -137,10 +155,9 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
     }
 
     candidate_models = [
-        GEMINI_MODEL,
         "gemini-3-flash-preview",
-        "gemini-flash-latest",
-        "gemini-pro-latest",
+        GEMINI_MODEL,
+        "gemini-2.5-flash",
     ]
     models_to_try = []
     for m in candidate_models:
@@ -154,7 +171,7 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
         req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            with urllib.request.urlopen(req, timeout=8) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 candidates = data.get("candidates", [])
                 if candidates and "content" in candidates[0]:
@@ -239,6 +256,11 @@ _ROUTING_KEYWORDS = {
     "consumer": [
         "complaint", "verify my product", "is this genuine", "consumer right", "fake product", "file a complaint",
         "shikayat", "fraud", "nakli", "fake samaan", "asli ya nakli", "complaint kaise", "bis care",
+    ],
+    "standards": [
+        "standard", "standards", "is code", "is number", "which standard", "what standard",
+        "standard for", "bis standard", "qco", "quality control order", "specification",
+        "kaunsa standard", "standard kaun", "niyam",
     ],
 }
 
@@ -566,6 +588,39 @@ def document_analysis_agent(analysis: dict) -> dict:
 # 5. Retriever Agent (RAG)
 # ---------------------------------------------------------------------------
 def retriever_agent(query: str, conversation_history: list[dict] = None) -> dict:
+    q_lower = query.lower()
+
+    # 1. Instant Catalog Match (<0.005s) for standard specification & number lookups
+    catalog_item = find_standards_catalog_match(query)
+    deep_analysis_requested = any(w in q_lower for w in ["explain", "detail", "procedure", "how to test", "history", "compare", "difference"])
+
+    if catalog_item and not deep_analysis_requested:
+        is_list = ", ".join(f"**{num}**" for num in catalog_item["is_numbers"])
+        qco_badge = "Mandatory Quality Control Order (QCO)" if catalog_item.get("mandatory_qco") else "Voluntary / Standard Certification"
+        answer = f"""### 🏛️ Official BIS Standards Specification: {catalog_item['category']}
+
+- **Applicable Indian Standard(s)**: {is_list}
+- **Standard Title**: {catalog_item['standard_title']}
+- **Regulatory Scheme**: {catalog_item['scheme']}
+- **Statutory Status**: {qco_badge}
+- **Testing & Safety Scope**: {catalog_item['scope']}
+- **Key Mandatory Clauses**: {catalog_item['key_clauses']}
+
+💡 **Verification & License Application**:
+You can look up active license holders or apply for certification at the official BIS portal: [{catalog_item['portal_url']}]({catalog_item['portal_url']})
+"""
+        return {
+            "agent": "Retriever Agent (Master Catalog)",
+            "answer": answer.strip(),
+            "citations": [
+                f"Bureau of Indian Standards — {catalog_item['category']} ({catalog_item['is_numbers'][0]})",
+                f"BIS Official Portal: {catalog_item['portal_url']}",
+                "Gazette Quality Control Orders (QCO) Database"
+            ],
+            "confidence": 0.95,
+            "explanation": f"Retrieved authoritative statutory specification from the BIS Master Standards Catalog for {catalog_item['category']}."
+        }
+
     retrieved_chunks = []
     metadatas = []
     distances = []
