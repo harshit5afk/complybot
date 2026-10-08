@@ -16,6 +16,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     JSON,
+    text,
 )
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
@@ -72,6 +73,8 @@ class Message(Base):
     language = Column(String(10), default="en")
     citations = Column(JSON, default=list)
     confidence = Column(Float, nullable=True)
+    latency_seconds = Column(Float, nullable=True)
+    engine = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     conversation = relationship("Conversation", back_populates="messages")
@@ -93,6 +96,17 @@ class UploadedDocument(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN latency_seconds FLOAT"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE messages ADD COLUMN engine VARCHAR(50)"))
+            conn.commit()
+        except Exception:
+            pass
 
 
 def get_db():

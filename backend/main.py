@@ -112,6 +112,8 @@ class MessageOut(BaseModel):
     language: Optional[str] = "en"
     citations: List[str] = []
     confidence: Optional[float] = None
+    latency_seconds: Optional[float] = None
+    engine: Optional[str] = None
     created_at: str
 
 
@@ -140,6 +142,8 @@ class ChatResponse(BaseModel):
     confidence: float
     explanation: Optional[str] = None
     conversation_id: Optional[int] = None
+    latency_seconds: Optional[float] = None
+    engine: Optional[str] = None
 
 
 class UploadResponse(BaseModel):
@@ -319,6 +323,8 @@ def get_conversation(
                 "language": m.language,
                 "citations": m.citations or [],
                 "confidence": m.confidence,
+                "latency_seconds": getattr(m, "latency_seconds", None),
+                "engine": getattr(m, "engine", None),
                 "created_at": m.created_at.isoformat(),
             }
             for m in conv.messages
@@ -390,9 +396,12 @@ async def upload_document(
             shutil.copyfileobj(file.file, buffer)
 
         # Run OCR extraction and compliance rules
+        t_start = time.time()
         extracted_text = ocr.extract_text_from_image(file_path)
         analysis = ocr.analyze_compliance_text(extracted_text, filename=file.filename)
         agent_resp = agents.document_analysis_agent(analysis)
+        latency = round(time.time() - t_start, 2)
+        engine_used = agent_resp.get("engine", agents._ACTIVE_ENGINE)
 
         # Find or create persistent conversation
         conv = None
@@ -435,6 +444,8 @@ async def upload_document(
             domain="document_audit",
             citations=agent_resp.get("citations", []),
             confidence=agent_resp.get("confidence", 0.90),
+            latency_seconds=latency,
+            engine=engine_used,
         )
         db.add(bot_msg)
         db.commit()
@@ -448,6 +459,8 @@ async def upload_document(
             confidence=agent_resp.get("confidence", 0.90),
             explanation=agent_resp.get("explanation"),
             conversation_id=conv.id,
+            latency_seconds=latency,
+            engine=engine_used,
         )
 
         return UploadResponse(
@@ -512,11 +525,14 @@ def chat(
         db.commit()
 
         # Run through the multi-agent pipeline with conversation memory
+        t_start = time.time()
         result = agents.handle_query(
             request.query,
             language=request.language,
             conversation_history=history_for_llm,
         )
+        latency = round(time.time() - t_start, 2)
+        engine_used = result.get("engine", agents._ACTIVE_ENGINE)
 
         agent_name = str(result.get("agent", "ComplyBot"))
         domain = str(result.get("domain", "general"))
@@ -536,6 +552,8 @@ def chat(
             language=lang,
             citations=citations,
             confidence=confidence,
+            latency_seconds=latency,
+            engine=engine_used,
         )
         db.add(bot_msg)
         conv.title = conv.title or request.query[:42]
@@ -550,6 +568,8 @@ def chat(
             confidence=confidence,
             explanation=explanation,
             conversation_id=conv.id,
+            latency_seconds=latency,
+            engine=engine_used,
         )
 
     except Exception as e:

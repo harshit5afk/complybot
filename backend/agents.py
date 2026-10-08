@@ -57,6 +57,7 @@ def _load_env_file():
 _load_env_file()
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
+_ACTIVE_ENGINE = "Gemini Flash" if GEMINI_API_KEY else "Ollama Local"
 
 # ---------------------------------------------------------------------------
 # Load structured data once at import time
@@ -159,6 +160,8 @@ def _gemini_chat(system_prompt: str, user_prompt: str, conversation_history: lis
                 if candidates and "content" in candidates[0]:
                     parts = candidates[0]["content"].get("parts", [])
                     if parts and "text" in parts[0]:
+                        global _ACTIVE_ENGINE
+                        _ACTIVE_ENGINE = "Gemini Flash"
                         return parts[0]["text"].strip()
         except urllib.error.HTTPError as e:
             last_err = e
@@ -179,6 +182,9 @@ def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: lis
         except Exception:
             # Fall back seamlessly to local Ollama if quota or network issue occurs
             pass
+
+    global _ACTIVE_ENGINE
+    _ACTIVE_ENGINE = "Ollama Local"
 
     messages = [{"role": "system", "content": system_prompt}]
     if conversation_history:
@@ -846,6 +852,7 @@ def handle_query(query: str, language: str = None, conversation_history: list[di
         result["language"] = lang
         result["confidence"] = result.get("confidence", 0.85)
         result["explanation"] = result.get("explanation", "Synthesized by ComplyBot multi-agent swarm.")
+        result["engine"] = _ACTIVE_ENGINE
         return result
     except Exception as e:
         return {

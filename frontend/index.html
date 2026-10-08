@@ -371,6 +371,34 @@
     color: #bfdbfe;
   }
 
+  .speed-badge {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: 0.01em;
+    background: rgba(168, 85, 247, 0.12);
+    color: #c084fc;
+    border: 1px solid rgba(168, 85, 247, 0.28);
+    transition: all 0.15s;
+  }
+  .speed-badge.gemini {
+    background: rgba(56, 189, 248, 0.12);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.3);
+  }
+  .speed-badge.ollama {
+    background: rgba(245, 158, 11, 0.12);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+  }
+  .speed-badge:hover {
+    filter: brightness(1.15);
+  }
+
   .bubble {
     padding: 14px 18px;
     border-radius: 14px;
@@ -1064,7 +1092,9 @@
             agent: msg.agent,
             citations: msg.citations,
             confidence: msg.confidence,
-            explanation: msg.explanation
+            explanation: msg.explanation,
+            latency_seconds: msg.latency_seconds,
+            engine: msg.engine
           });
         }
       });
@@ -1219,6 +1249,17 @@
     return `<div class="explanation-pill" title="${escapeHtml(exp)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Evidence source</span></div>`;
   }
 
+  // ── SPEED & ENGINE BADGE BUILDER ──
+  function buildSpeedBadge(latency, engine) {
+    if (latency === undefined || latency === null) return '';
+    const eng = engine || '';
+    const isGemini = eng.toLowerCase().includes('gemini');
+    const badgeClass = isGemini ? 'speed-badge gemini' : 'speed-badge ollama';
+    const icon = isGemini ? '⚡' : '🖥️';
+    const engineLabel = eng ? ` • ${escapeHtml(eng)}` : '';
+    return `<div class="${badgeClass}" title="Response time: ${latency}s (${escapeHtml(eng || 'AI Engine')})">${icon} ${latency}s${engineLabel}</div>`;
+  }
+
   // ── REPORT ACTION BUTTONS BUILDER ──
   function buildReportActionsHtml(text, agent) {
     if (!text) return '';
@@ -1301,6 +1342,7 @@
 
     const confBadge = buildConfidenceBadge(meta ? meta.confidence : null);
     const expPill = buildExplanationPill(meta ? meta.explanation : null);
+    const speedBadge = buildSpeedBadge(meta ? meta.latency_seconds : null, meta ? meta.engine : null);
     const reportActions = buildReportActionsHtml(text, meta ? meta.agent : '');
 
     row.innerHTML = `
@@ -1310,6 +1352,7 @@
           ${agentBadge}
           ${confBadge}
           ${expPill}
+          ${speedBadge}
         </div>
         <div class="bubble">${renderMarkdown(text)}${citationsHtml}${reportActions}</div>
       </div>
@@ -1405,6 +1448,7 @@
       const badgeStyle = isError ? 'style="color:#ef4444;"' : '';
       const confBadge = buildConfidenceBadge(data.confidence);
       const expPill = buildExplanationPill(data.explanation);
+      const speedBadge = buildSpeedBadge(data.latency_seconds, data.engine);
 
       const reportActions = buildReportActionsHtml(data.answer || '', data.agent);
 
@@ -1415,6 +1459,7 @@
             <div class="agent-badge" ${badgeStyle}>${escapeHtml(data.agent || 'ComplyBot')}</div>
             ${confBadge}
             ${expPill}
+            ${speedBadge}
           </div>
           <div class="bubble" ${bubbleStyle}>${renderMarkdown(data.answer || '')}${citationsHtml}${reportActions}</div>
         </div>
@@ -1487,6 +1532,7 @@
 
       const confBadge = buildConfidenceBadge(meta.confidence);
       const expPill = buildExplanationPill(meta.explanation);
+      const speedBadge = buildSpeedBadge(chatData.latency_seconds, chatData.engine);
       const reportActions = buildReportActionsHtml(chatData.answer, chatData.agent);
 
       typingRow.innerHTML = `
@@ -1496,6 +1542,7 @@
             <div class="agent-badge">${escapeHtml(chatData.agent)}</div>
             ${confBadge}
             ${expPill}
+            ${speedBadge}
           </div>
           <div class="bubble">${renderMarkdown(chatData.answer)}${citationsHtml}${reportActions}</div>
         </div>
