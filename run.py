@@ -77,17 +77,33 @@ def _open_browser():
             except Exception:
                 pass
 
-    if not opened:
-        try:
-            webbrowser.open_new_tab(URL)
-        except Exception as e:
-            try:
-                print(f"Could not automatically open browser: {e}", flush=True)
-            except Exception:
-                pass
+def _ensure_ollama_running():
+    """Checks if Ollama daemon is running on port 11434; if not, attempts to start it."""
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.5)
+    try:
+        res = sock.connect_ex(("127.0.0.1", 11434))
+        sock.close()
+        if res == 0:
+            return True
+    except Exception:
+        pass
+
+    try:
+        print("  [*] Ollama is not active. Starting local Ollama background service...", flush=True)
+        if sys.platform == "win32":
+            subprocess.Popen(["ollama", "serve"], creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            subprocess.Popen(["ollama", "serve"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(2.0)
+    except Exception as e:
+        print(f"  [!] Note: Could not auto-launch Ollama ({e}). Make sure Ollama desktop app is running.", flush=True)
 
 
 if __name__ == "__main__":
+    # Ensure Ollama service is active
+    _ensure_ollama_running()
+
     # Start browser launcher thread
     browser_thread = threading.Thread(target=_open_browser, daemon=True)
     browser_thread.start()
