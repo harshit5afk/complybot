@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComplyBot — Admin Dashboard & Standards Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-main: #0b0f19;
+    --bg-card: #121826;
+    --bg-card-hover: #172133;
+    --bg-surface: #1e293b;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-accent: rgba(16, 185, 129, 0.3);
+    --accent: #10b981;
+    --accent-glow: rgba(16, 185, 129, 0.2);
+    --accent-dark: #059669;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --danger: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.12);
+    --radius: 14px;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    padding-bottom: 60px;
+    line-height: 1.5;
+  }
+
+  /* ── TOP NAV BAR ── */
+  .navbar {
+    background: rgba(18, 24, 38, 0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .nav-logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #10b981, #047857);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.85rem;
+    color: white;
+    box-shadow: 0 0 16px var(--accent-glow);
+  }
+  .nav-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .nav-subtitle {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+  }
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .live-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+  }
+  .pulse-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); opacity: 0.8; }
+    50% { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(0.95); opacity: 0.8; }
+  }
+  .nav-btn {
+    text-decoration: none;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    padding: 7px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .nav-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(16, 185, 129, 0.08);
+  }
+
+  /* ── MAIN CONTAINER ── */
+  .container {
+    max-width: 1240px;
+    margin: 28px auto 0;
+    padding: 0 24px;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .section-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  /* ── KPI GRID ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .kpi-card.warning::before {
+    background: linear-gradient(90deg, var(--warning), transparent);
+  }
+  .kpi-card.danger::before {
+    background: linear-gradient(90deg, var(--danger), transparent);
+  }
+  .kpi-label {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .kpi-sub {
+    font-size: 0.76rem;
+    color: var(--text-secondary);
+    margin-top: 6px;
+  }
+
+  /* ── TWO COLUMN LAYOUT ── */
+  .layout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 900px) {
+    .layout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── AGENT BARS ── */
+  .agent-bar-wrap {
+    margin-bottom: 14px;
+  }
+  .agent-bar-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    margin-bottom: 5px;
+    color: var(--text-secondary);
+  }
+  .agent-bar-track {
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .agent-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #10b981, #059669);
+    transition: width 0.5s ease-out;
+  }
+
+  /* ── TABLES ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    text-align: left;
+  }
+  th {
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-muted);
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td {
+    padding: 12px 14px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+  .conf-pill {
+    padding: 3px 8px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    display: inline-block;
+  }
+  .conf-pill.high { background: var(--success-bg); color: var(--success); }
+  .conf-pill.mid { background: var(--warning-bg); color: var(--warning); }
+  .conf-pill.low { background: var(--danger-bg); color: var(--danger); }
+
+  /* ── CORPUS UPLOAD & CONTROLS ── */
+  .upload-box {
+    border: 2px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.01);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 16px;
+  }
+  .upload-box:hover {
+    border-color: var(--accent);
+    background: rgba(16, 185, 129, 0.03);
+  }
+  .upload-icon {
+    width: 38px;
+    height: 38px;
+    margin: 0 auto 10px;
+    color: var(--accent);
+    opacity: 0.8;
+  }
+
+  .btn-action {
+    background: var(--accent);
+    color: #0b0f19;
+    border: none;
+    font-weight: 700;
+    font-size: 0.86rem;
+    padding: 11px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.15s;
+    width: 100%;
+  }
+  .btn-action:hover {
+    background: #34d399;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px var(--accent-glow);
+  }
+  .btn-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* ── TOAST NOTIFICATION ── */
+  #toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #1e293b;
+    border: 1px solid var(--accent);
+    color: var(--text-primary);
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 1000;
+    animation: slideIn 0.3s ease;
+  }
+  @keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+
+  .loading-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0, 0, 0, 0.2);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar">
+  <div class="nav-brand">
+    <div class="nav-logo">CB</div>
+    <div>
+      <div class="nav-title">ComplyBot Admin Portal</div>
+      <div class="nav-subtitle">Knowledge Base Management & Regulatory Swarm Analytics</div>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <div class="live-status">
+      <span class="pulse-dot"></span>
+      <span>Swarm Active</span>
+    </div>
+    <button class="nav-btn" onclick="fetchAdminData()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/></svg>
+      Refresh
+    </button>
+    <a href="/" class="nav-btn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Open ComplyBot
+    </a>
+  </div>
+</nav>
+
+<!-- ── MAIN CONTENT ── -->
+<div class="container">
+
+  <!-- ── STATS / KPIS ── -->
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">📊 Operational Overview</h2>
+      <p class="section-desc">Real-time metrics aggregated across conversations, vector lookups, and audit queries.</p>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">Total Queries Handled</div>
+      <div class="kpi-value" id="kpi-queries">0</div>
+      <div class="kpi-sub" id="kpi-queries-sub">0 user queries • 0 bot replies</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Average Confidence Score</div>
+      <div class="kpi-value" id="kpi-confidence">0%</div>
+      <div class="kpi-sub">Grounded on BIS gazette standards</div>
+    </div>
+    <div class="kpi-card warning">
+      <div class="kpi-label">Knowledge Gaps / Flagged</div>
+      <div class="kpi-value" id="kpi-gaps">0</div>
+      <div class="kpi-sub">Confidence &lt; 50% or ungrounded</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Registered Organizations</div>
+      <div class="kpi-value" id="kpi-users">0</div>
+      <div class="kpi-sub" id="kpi-convs-sub">0 compliance chat threads</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Uploaded Document Audits</div>
+      <div class="kpi-value" id="kpi-docs">0</div>
+      <div class="kpi-sub">Label images & test certificates</div>
+    </div>
+  </div>
+
+  <!-- ── ROW: AGENT DISTRIBUTION & CORPUS MANAGER ── -->
+  <div class="layout-grid">
+    
+    <!-- Agent Distribution -->
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">🤖 Multi-Agent Routing Breakdown</h3>
+          <p class="section-desc">Distribution of queries across specialized agents in the swarm.</p>
+        </div>
+      </div>
+      <div id="agents-distribution-container" style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+        <div style="color:var(--text-muted); font-size:0.85rem; text-align:center;">Loading swarm distribution...</div>
+      </div>
+    </div>
+
+    <!-- Standards Corpus Management -->
+    <div class="card">
+      <div class="section-header">
+        <div>
+          <h3 class="section-title">📚 Standards Corpus & ChromaDB</h3>
+          <p class="section-desc">Upload markdown standards (.md) and trigger instant embedding re-indexing.</p>
+        </div>
+      </div>
+
+      <!-- Upload box -->
+      <div class="upload-box" onclick="document.getElementById('standards-file-input').click()">
+        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="17 8 12 3 7 8"></polyline>
+          <line x1="12" y1="3" x2="12" y2="15"></line>
+        </svg>
+        <div style="font-weight:600; font-size:0.9rem; color:var(--text-primary); margin-bottom:4px;">Upload New Standard Document (.md)</div>
+        <div style="font-size:0.76rem; color:var(--text-muted);">Click or drag markdown file to append to data/standards</div>
+      </div>
+      <input type="file" id="standards-file-input" style="display:none;" accept=".md" onchange="handleStandardUpload(event)">
+
+      <!-- Re-ingest Button -->
+      <button class="btn-action" id="reingest-btn" onclick="triggerReingest()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span id="reingest-btn-text">Re-Ingest Standards into ChromaDB</span>
+      </button>
+      <div style="font-size:0.72rem; color:var(--text-muted); margin-top:8px; text-align:center;">
+        Uses nomic-embed-text to compute 768-dim vector chunks across the corpus.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── ROW: STANDARDS FILE DIRECTORY ── -->
+  <div class="card" style="margin-bottom: 32px;">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">📑 Ingested Standards Library</h3>
+        <p class="section-desc">Markdown specification files currently powering the vector similarity search.</p>
+      </div>
+      <span id="standards-count-badge" style="font-size:0.78rem; color:var(--accent); font-weight:600;">0 files</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Document Filename</th>
+            <th>File Size</th>
+            <th>Format</th>
+            <th>Ingestion Status</th>
+          </tr>
+        </thead>
+        <tbody id="standards-table-body">
+          <tr><td colspan="4" style="text-align:center; color:var(--text-muted);">Loading corpus files...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ROW: LOW CONFIDENCE AUDIT QUEUE ── -->
+  <div class="card">
+    <div class="section-header">
+      <div>
+        <h3 class="section-title">⚠️ Low-Confidence & Ungrounded Queries (Review Queue)</h3>
+        <p class="section-desc">User questions where the system scored confidence &lt; 50% or needed human review.</p>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:30%;">User Question</th>
+            <th style="width:35%;">Synthesized Answer Snippet</th>
+            <th>Assigned Agent</th>
+            <th>Confidence</th>
+            <th>Logged At</th>
+          </tr>
+        </thead>
+        <tbody id="unanswered-table-body">
+          <tr><td colspan="5" style="text-align:center; color:var(--text-muted);">No low-confidence queries recorded. Great job!</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ── TOAST NOTIFICATION ── -->
+<div id="toast">
+  <span id="toast-icon">✓</span>
+  <span id="toast-message">Action successful</span>
+</div>
+
+<script>
+  const API_STATS = '/admin/stats';
+  const API_UNANSWERED = '/admin/unanswered';
+  const API_STANDARDS = '/admin/standards';
+  const API_UPLOAD_STANDARD = '/admin/standards/upload';
+  const API_REINGEST = '/admin/reingest';
+
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    const toastMsg = document.getElementById('toast-message');
+    const toastIcon = document.getElementById('toast-icon');
+    toastMsg.textContent = msg;
+    toastIcon.textContent = isError ? '⚠️' : '✓';
+    toast.style.borderColor = isError ? 'var(--danger)' : 'var(--accent)';
+    toast.style.display = 'flex';
+    setTimeout(() => { toast.style.display = 'none'; }, 4000);
+  }
+
+  async function fetchAdminData() {
+    try {
+      // 1. Fetch Stats
+      const resStats = await fetch(API_STATS);
+      if (resStats.ok) {
+        const stats = await resStats.json();
+        document.getElementById('kpi-queries').textContent = stats.user_queries + stats.bot_responses;
+        document.getElementById('kpi-queries-sub').textContent = `${stats.user_queries} user queries • ${stats.bot_responses} bot replies`;
+        document.getElementById('kpi-confidence').textContent = `${Math.round(stats.average_confidence * 100)}%`;
+        document.getElementById('kpi-gaps').textContent = stats.low_confidence_queries;
+        document.getElementById('kpi-users').textContent = stats.total_users;
+        document.getElementById('kpi-convs-sub').textContent = `${stats.total_conversations} saved threads`;
+        document.getElementById('kpi-docs').textContent = stats.uploaded_documents;
+
+        renderAgentDistribution(stats.agent_distribution);
+      }
+
+      // 2. Fetch Standards
+      const resStds = await fetch(API_STANDARDS);
+      if (resStds.ok) {
+        const stdsData = await resStds.json();
+        renderStandardsTable(stdsData.standards);
+      }
+
+      // 3. Fetch Unanswered / Low Confidence
+      const resUnanswered = await fetch(API_UNANSWERED);
+      if (resUnanswered.ok) {
+        const unanswered = await resUnanswered.json();
+        renderUnansweredTable(unanswered);
+      }
+
+    } catch (e) {
+      console.error('Failed to load admin data:', e);
+      showToast('Could not load admin stats. Make sure backend is running.', true);
+    }
+  }
+
+  function renderAgentDistribution(dist) {
+    const container = document.getElementById('agents-distribution-container');
+    if (!dist || Object.keys(dist).length === 0) {
+      container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; text-align:center;">No query activity recorded yet.</div>';
+      return;
+    }
+
+    const total = Object.values(dist).reduce((a, b) => a + b, 0);
+    let html = '';
+    for (const [agent, count] of Object.entries(dist)) {
+      const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+      html += `
+        <div class="agent-bar-wrap">
+          <div class="agent-bar-info">
+            <span style="font-weight:600; color:var(--text-primary);">${escapeHtml(agent)}</span>
+            <span>${count} calls (${pct}%)</span>
+          </div>
+          <div class="agent-bar-track">
+            <div class="agent-bar-fill" style="width: ${pct}%;"></div>
+          </div>
+        </div>
+      `;
+    }
+    container.innerHTML = html;
+  }
+
+  function renderStandardsTable(files) {
+    const tbody = document.getElementById('standards-table-body');
+    document.getElementById('standards-count-badge').textContent = `${files.length} active documents`;
+    if (!files || files.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No standards files found in data/standards.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = files.map(f => `
+      <tr>
+        <td style="font-weight:600; color:var(--text-primary);">📄 ${escapeHtml(f.filename)}</td>
+        <td>${f.size_kb} KB</td>
+        <td><code style="background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px; font-size:0.75rem;">Markdown</code></td>
+        <td><span class="conf-pill high">✓ Ingested in ChromaDB</span></td>
+      </tr>
+    `).join('');
+  }
+
+  function renderUnansweredTable(rows) {
+    const tbody = document.getElementById('unanswered-table-body');
+    if (!rows || rows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--text-muted); padding:20px;">No low-confidence queries logged yet. All queries grounded!</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      const confPct = Math.round((r.confidence || 0) * 100);
+      return `
+        <tr>
+          <td style="font-weight:600; color:var(--text-primary);">${escapeHtml(r.question)}</td>
+          <td style="font-size:0.8rem; color:var(--text-secondary);">${escapeHtml(r.bot_answer)}</td>
+          <td><span style="font-size:0.75rem; color:var(--accent); font-weight:600;">${escapeHtml(r.agent || 'System')}</span></td>
+          <td><span class="conf-pill low">⚠️ ${confPct}%</span></td>
+          <td style="font-size:0.75rem; color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  async function handleStandardUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      showToast(`Uploading ${file.name}...`);
+      const res = await fetch(API_UPLOAD_STANDARD, {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Upload failed');
+
+      showToast(`Uploaded ${data.filename} successfully! Re-ingest now to apply.`);
+      fetchAdminData();
+    } catch (e) {
+      showToast(e.message, true);
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  async function triggerReingest() {
+    const btn = document.getElementById('reingest-btn');
+    const btnText = document.getElementById('reingest-btn-text');
+
+    btn.disabled = true;
+    btnText.innerHTML = '<span class="loading-spinner"></span> Re-indexing ChromaDB vector embeddings...';
+
+    try {
+      const res = await fetch(API_REINGEST, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Re-ingestion failed');
+
+      showToast('Standards re-ingested into ChromaDB successfully!');
+      fetchAdminData();
+    } catch (e) {
+      showToast(e.message, true);
+    } finally {
+      btn.disabled = false;
+      btnText.textContent = 'Re-Ingest Standards into ChromaDB';
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.innerText = str;
+    return div.innerHTML;
+  }
+
+  // Load on start
+  fetchAdminData();
+</script>
+
+</body>
+</html>

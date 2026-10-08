@@ -403,6 +403,67 @@
   .citations a:hover { text-decoration: underline; }
   .citations div.cite-row { margin-top: 3px; }
 
+  /* ── REPORT DOWNLOAD ACTIONS ── */
+  .report-actions {
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .report-btn {
+    text-decoration: none;
+    font-size: 0.76rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .report-btn.pdf-btn {
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #4ade80;
+  }
+  .report-btn.pdf-btn:hover {
+    background: rgba(34, 197, 94, 0.22);
+    border-color: #22c55e;
+  }
+  .report-btn.html-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .report-btn.html-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+  }
+
+  .sidebar-admin-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    margin: 8px 16px 0;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .sidebar-admin-link:hover {
+    background: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: var(--accent);
+  }
+
   .typing { display: flex; gap: 5px; padding: 6px 2px; }
   .typing span {
     width: 6px; height: 6px; border-radius: 50%;
@@ -666,6 +727,11 @@
   <div class="sidebar-section-title">Saved Compliance Threads</div>
   <div id="history-list"></div>
 
+  <a href="/admin" class="sidebar-admin-link" title="Open Admin & Standards Management Portal">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>Admin & Standards Portal</span>
+  </a>
+
   <!-- User Profile Section -->
   <div class="sidebar-user" id="sidebar-user-section">
     <!-- Rendered dynamically by updateAuthUI() -->
@@ -684,9 +750,14 @@
         <div class="header-subtitle">Indian Standards & BIS Compliance Assistant — PS #04</div>
       </div>
     </div>
-    <div class="lang-switch">
-      <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
-      <button id="lang-hi" onclick="setLang('hi')">हिं</button>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <a href="/admin" style="text-decoration:none; display:flex; align-items:center; gap:5px; font-size:0.75rem; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text-dim); padding:6px 10px; border-radius:8px; transition:all 0.15s;" title="Admin Portal" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-dim)'">
+        <span>🛡️ Admin Portal</span>
+      </a>
+      <div class="lang-switch">
+        <button id="lang-en" class="active" onclick="setLang('en')">EN</button>
+        <button id="lang-hi" onclick="setLang('hi')">हिं</button>
+      </div>
     </div>
   </header>
 
@@ -1148,6 +1219,58 @@
     return `<div class="explanation-pill" title="${escapeHtml(exp)}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg><span>Evidence source</span></div>`;
   }
 
+  // ── REPORT ACTION BUTTONS BUILDER ──
+  function buildReportActionsHtml(text, agent) {
+    if (!text) return '';
+    const isCompliance = (agent && (
+      agent === 'Compliance Checker Agent' ||
+      agent === 'Document Analysis Agent' ||
+      agent.includes('Master Catalog')
+    )) ||
+    text.includes('Official Compliance Roadmap') ||
+    text.includes('Applicable Indian Standard') ||
+    text.includes('Label & Document Compliance Audit') ||
+    text.includes('Applicable Standards');
+
+    if (!isCompliance) return '';
+
+    let product = 'LED Self-Ballasted Lamps';
+    const match = text.match(/(?:Roadmap|Specification|Comparison):\s*([^\n\r#]+)/i);
+    if (match && match[1]) {
+      product = match[1].trim();
+    } else if (text.toLowerCase().includes('toy')) {
+      product = 'toys';
+    } else if (text.toLowerCase().includes('fan')) {
+      product = 'fan';
+    } else if (text.toLowerCase().includes('water')) {
+      product = 'packaged water';
+    } else if (text.toLowerCase().includes('helmet')) {
+      product = 'helmet';
+    } else if (text.toLowerCase().includes('jewel') || text.toLowerCase().includes('gold')) {
+      product = 'jewellery';
+    } else if (text.toLowerCase().includes('steel')) {
+      product = 'steel';
+    } else if (text.toLowerCase().includes('cosmetic')) {
+      product = 'cosmetics';
+    } else if (text.toLowerCase().includes('battery')) {
+      product = 'battery';
+    } else if (text.toLowerCase().includes('solar')) {
+      product = 'solar';
+    }
+
+    const enc = encodeURIComponent(product);
+    return `
+      <div class="report-actions">
+        <a href="/report/pdf?product=${enc}" target="_blank" class="report-btn pdf-btn" title="Download official PDF assessment report">
+          📄 Download PDF Report
+        </a>
+        <a href="/report/html?product=${enc}" target="_blank" class="report-btn html-btn" title="View printable assessment report">
+          🖨️ Printable Assessment
+        </a>
+      </div>
+    `;
+  }
+
   // ── DOM APPEND HELPERS ──
   function appendUserMessageDirect(text) {
     const chat = document.getElementById('chat');
@@ -1178,6 +1301,7 @@
 
     const confBadge = buildConfidenceBadge(meta ? meta.confidence : null);
     const expPill = buildExplanationPill(meta ? meta.explanation : null);
+    const reportActions = buildReportActionsHtml(text, meta ? meta.agent : '');
 
     row.innerHTML = `
       <div class="avatar bot-avatar">CB</div>
@@ -1187,7 +1311,7 @@
           ${confBadge}
           ${expPill}
         </div>
-        <div class="bubble">${renderMarkdown(text)}${citationsHtml}</div>
+        <div class="bubble">${renderMarkdown(text)}${citationsHtml}${reportActions}</div>
       </div>
     `;
     chat.appendChild(row);
@@ -1282,6 +1406,8 @@
       const confBadge = buildConfidenceBadge(data.confidence);
       const expPill = buildExplanationPill(data.explanation);
 
+      const reportActions = buildReportActionsHtml(data.answer || '', data.agent);
+
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
         <div class="bubble-wrap">
@@ -1290,7 +1416,7 @@
             ${confBadge}
             ${expPill}
           </div>
-          <div class="bubble" ${bubbleStyle}>${renderMarkdown(data.answer || '')}${citationsHtml}</div>
+          <div class="bubble" ${bubbleStyle}>${renderMarkdown(data.answer || '')}${citationsHtml}${reportActions}</div>
         </div>
       `;
 
@@ -1361,6 +1487,7 @@
 
       const confBadge = buildConfidenceBadge(meta.confidence);
       const expPill = buildExplanationPill(meta.explanation);
+      const reportActions = buildReportActionsHtml(chatData.answer, chatData.agent);
 
       typingRow.innerHTML = `
         <div class="avatar bot-avatar">CB</div>
@@ -1370,7 +1497,7 @@
             ${confBadge}
             ${expPill}
           </div>
-          <div class="bubble">${renderMarkdown(chatData.answer)}${citationsHtml}</div>
+          <div class="bubble">${renderMarkdown(chatData.answer)}${citationsHtml}${reportActions}</div>
         </div>
       `;
 

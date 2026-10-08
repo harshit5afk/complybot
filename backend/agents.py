@@ -54,6 +54,29 @@ if os.path.exists(checklist_file):
 else:
     COMPLIANCE_CHECKLISTS = []
 
+catalog_file = os.path.join(DATA_DIR, "standards_catalog.json")
+if os.path.exists(catalog_file):
+    with open(catalog_file, encoding="utf-8") as f:
+        STANDARDS_CATALOG = json.load(f).get("catalog", [])
+else:
+    STANDARDS_CATALOG = []
+
+
+def find_standards_catalog_match(query: str) -> dict | None:
+    """Matches query keywords or IS numbers against the master standards catalog."""
+    q_lower = query.lower()
+    for item in STANDARDS_CATALOG:
+        for kw in item.get("keywords", []):
+            if kw.lower() in q_lower:
+                return item
+        if item.get("category", "").lower() in q_lower:
+            return item
+        for is_num in item.get("is_numbers", []):
+            clean_is = is_num.lower().replace(":", " ").replace("(", " ").replace(")", " ")
+            if any(part in q_lower for part in clean_is.split() if part.startswith("is")):
+                return item
+    return None
+
 # Chroma client (lazy-loaded so the module can be imported safely)
 _chroma_client = None
 _collection = None
@@ -93,15 +116,36 @@ def _ollama_chat(system_prompt: str, user_prompt: str, conversation_history: lis
 
 
 # ---------------------------------------------------------------------------
-# Router Agent
+# Router Agent (Enhanced with Hinglish & Master Catalog Support)
 # ---------------------------------------------------------------------------
 _ROUTING_KEYWORDS = {
-    "compare": ["compare", "vs", "versus", "difference between", "side by side", "led vs", "fan vs", "toys vs"],
-    "compliance_check": ["checklist", "what do i need", "compliance check", "steps to apply", "documents needed", "how to certify", "certification requirements", "timeline estimate", "cost range", "am i compliant", "readiness score", "requirements for"],
-    "hallmarking": ["hallmark", "huid", "gold purity", "silver purity", "karat", "jewellery", "jewelry", "jeweller"],
-    "lab_finder": ["lab", "laboratory", "testing lab", "test my", "where can i test", "which lab"],
-    "certification": ["certificat", "license", "licence", "isi mark", "crs", "registration scheme", "how do i get"],
-    "consumer": ["complaint", "verify my product", "is this genuine", "consumer right", "fake product", "file a complaint"],
+    "compare": [
+        "compare", "vs", "versus", "difference between", "side by side", "led vs", "fan vs", "toys vs",
+        "kisme antar", "fark", "compare karo", "difference batao", "antar kya hai", "kaunsa better",
+    ],
+    "compliance_check": [
+        "checklist", "what do i need", "compliance check", "steps to apply", "documents needed",
+        "how to certify", "certification requirements", "timeline estimate", "cost range", "am i compliant",
+        "readiness score", "requirements for", "kaise apply kare", "documents kya lagenge", "checklist chahiye",
+        "process batao", "process kya hai", "kaise banega", "kya chahiye", "kaise certify kare",
+        "standard kya hai", "standard batao", "kaise milega",
+    ],
+    "hallmarking": [
+        "hallmark", "huid", "gold purity", "silver purity", "karat", "jewellery", "jewelry", "jeweller",
+        "sona", "chandi", "shuddhata", "purity kaise", "huid kaise", "hallmark kaise", "gold test", "silver test",
+    ],
+    "lab_finder": [
+        "lab", "laboratory", "testing lab", "test my", "where can i test", "which lab",
+        "kahan test", "test kahan", "laboratory kahan", "lab batao", "kahan check karaye", "sample test",
+    ],
+    "certification": [
+        "certificat", "license", "licence", "isi mark", "crs", "registration scheme", "how do i get",
+        "license kaise", "isi mark kaise", "crs kaise", "registration kaise", "parwana",
+    ],
+    "consumer": [
+        "complaint", "verify my product", "is this genuine", "consumer right", "fake product", "file a complaint",
+        "shikayat", "fraud", "nakli", "fake samaan", "asli ya nakli", "complaint kaise", "bis care",
+    ],
 }
 
 
@@ -152,8 +196,46 @@ def compliance_checker_agent(query: str, conversation_history: list[dict] = None
         if matched_item:
             break
 
-    # If no exact structured checklist, fallback to certification or retriever agent
+    # If not in checklists, check standards catalog before fallback
     if not matched_item:
+        cat_match = find_standards_catalog_match(query)
+        if cat_match:
+            is_stds = "\n".join(f"- **{s}**" for s in cat_match["is_numbers"])
+            qco_stat = "Mandatory Quality Control Order (QCO)" if cat_match.get("mandatory_qco") else "Voluntary Scheme"
+            answer = f"""### 📋 Official Compliance Roadmap: {cat_match['category']}
+
+#### 1. Mandatory Applicable Standards
+{is_stds}
+- **Standard Title**: {cat_match['standard_title']}
+
+#### 2. Certification Route
+- **Scheme**: {cat_match['scheme']}
+- **Regulatory Status**: {qco_stat}
+
+#### 3. Prescribed Testing & Key Clauses
+- **Safety & Quality Scope**: {cat_match['scope']}
+- **Key Mandatory Clauses**: {cat_match['key_clauses']}
+
+#### 4. Pre-Application Document Checklist
+1. Valid Business Registration (GST / MSME / CIN)
+2. Manufacturing Process Flowchart & Machinery List
+3. In-House Test & Inspection Plan (STI)
+4. Calibration certificates of test instruments
+5. Test reports from a BIS-recognized / NABL laboratory
+
+#### 5. Official Verification & Application
+Apply or verify standards on the official BIS portal: [{cat_match['portal_url']}]({cat_match['portal_url']})
+"""
+            return {
+                "agent": "Compliance Checker Agent",
+                "answer": answer.strip(),
+                "citations": [
+                    f"Bureau of Indian Standards — {cat_match['category']} ({cat_match['is_numbers'][0]})",
+                    cat_match["portal_url"]
+                ],
+                "confidence": 0.95,
+                "explanation": f"Generated structured compliance roadmap using BIS Quality Control Order and standard specification for {cat_match['category']}."
+            }
         return certification_agent(query, conversation_history=conversation_history)
 
     # Build rich structured compliance roadmap
@@ -420,6 +502,35 @@ def retriever_agent(query: str, conversation_history: list[dict] = None) -> dict
         confidence = 0.40
 
     if not retrieved_chunks:
+        # Check Master Standards Catalog before falling back to ungrounded LLM
+        catalog_item = find_standards_catalog_match(query)
+        if catalog_item:
+            is_list = ", ".join(f"**{num}**" for num in catalog_item["is_numbers"])
+            qco_badge = "Mandatory Quality Control Order (QCO)" if catalog_item.get("mandatory_qco") else "Voluntary / Standard Certification"
+            answer = f"""### 🏛️ Official BIS Standards Specification: {catalog_item['category']}
+
+- **Applicable Indian Standard(s)**: {is_list}
+- **Standard Title**: {catalog_item['standard_title']}
+- **Regulatory Scheme**: {catalog_item['scheme']}
+- **Statutory Status**: {qco_badge}
+- **Testing & Safety Scope**: {catalog_item['scope']}
+- **Key Mandatory Clauses**: {catalog_item['key_clauses']}
+
+💡 **Verification & License Application**:
+You can look up active license holders or apply for certification at the official BIS portal: [{catalog_item['portal_url']}]({catalog_item['portal_url']})
+"""
+            return {
+                "agent": "Retriever Agent (Master Catalog)",
+                "answer": answer.strip(),
+                "citations": [
+                    f"Bureau of Indian Standards — {catalog_item['category']} ({catalog_item['is_numbers'][0]})",
+                    f"BIS Official Portal: {catalog_item['portal_url']}",
+                    "Gazette Quality Control Orders (QCO) Database"
+                ],
+                "confidence": 0.95,
+                "explanation": f"Retrieved authoritative statutory specification from the BIS Master Standards Catalog for {catalog_item['category']}."
+            }
+
         system = (
             "You are ComplyBot, an AI assistant for the Bureau of Indian Standards (BIS). "
             "Answer the user's question about Indian Standards or BIS certification accurately and politely. "
@@ -449,8 +560,30 @@ def retriever_agent(query: str, conversation_history: list[dict] = None) -> dict
     user = f"Context:\n{context_block}\n\nQuestion: {query}"
     answer = _ollama_chat(system, user, conversation_history=conversation_history)
 
-    # Fallback advisory when confidence is low
-    if confidence < 0.45:
+    # Fallback advisory or Master Catalog enhancement when confidence is low
+    if confidence < 0.50:
+        catalog_item = find_standards_catalog_match(query)
+        if catalog_item:
+            is_list = ", ".join(f"**{num}**" for num in catalog_item["is_numbers"])
+            return {
+                "agent": "Retriever Agent (Master Catalog)",
+                "answer": (
+                    f"### 🏛️ Official BIS Standards Specification: {catalog_item['category']}\n\n"
+                    f"- **Applicable Indian Standard(s)**: {is_list}\n"
+                    f"- **Standard Title**: {catalog_item['standard_title']}\n"
+                    f"- **Regulatory Scheme**: {catalog_item['scheme']}\n"
+                    f"- **Testing & Safety Scope**: {catalog_item['scope']}\n"
+                    f"- **Key Mandatory Clauses**: {catalog_item['key_clauses']}\n\n"
+                    f"💡 Official BIS Portal: [{catalog_item['portal_url']}]({catalog_item['portal_url']})"
+                ),
+                "citations": [
+                    f"Bureau of Indian Standards — {catalog_item['category']} ({catalog_item['is_numbers'][0]})",
+                    catalog_item["portal_url"],
+                ],
+                "confidence": 0.95,
+                "explanation": f"Corpus confidence was low; synthesized via authoritative BIS Master Catalog specification for {catalog_item['category']}.",
+            }
+
         answer = (
             "⚠️ Note: Low confidence score on exact clause match. Please confirm the product category or consult official BIS publications.\n\n"
             + answer

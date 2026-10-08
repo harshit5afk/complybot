@@ -16,7 +16,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -25,6 +25,8 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 import agents
 import ocr
+import reports
+import admin_routes
 from database import init_db, get_db, User, Conversation, Message, UploadedDocument
 from auth import (
     hash_password,
@@ -54,6 +56,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include Admin Dashboard & Corpus Management routes
+app.include_router(admin_routes.router)
 
 
 # ---------------------------------------------------------------------------
@@ -561,11 +566,52 @@ def chat(
 
 
 # ---------------------------------------------------------------------------
+# Compliance Report Generation Endpoints (NEW Phase 3)
+# ---------------------------------------------------------------------------
+@app.get("/report/pdf")
+def download_pdf_report(
+    product: Optional[str] = "LED Self-Ballasted Lamps",
+    user_name: Optional[str] = "Industry Applicant",
+    user: Optional[User] = Depends(get_optional_user),
+):
+    """Generates and streams a formal PDF Compliance Assessment Report."""
+    if user and user.display_name:
+        user_name = user.display_name
+    product_data = reports.get_product_report_data(product)
+    pdf_buffer = reports.generate_compliance_pdf(product_data, user_name=user_name)
+    slug = "".join(c if c.isalnum() else "_" for c in product_data.get("product_category", "assessment")).lower()
+    return StreamingResponse(
+        pdf_buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="complybot_assessment_{slug}.pdf"'},
+    )
+
+
+@app.get("/report/html")
+def view_html_report(
+    product: Optional[str] = "LED Self-Ballasted Lamps",
+    user_name: Optional[str] = "Industry Applicant",
+    user: Optional[User] = Depends(get_optional_user),
+):
+    """Generates a responsive, printable HTML Compliance Assessment Report."""
+    if user and user.display_name:
+        user_name = user.display_name
+    product_data = reports.get_product_report_data(product)
+    html_content = reports.generate_compliance_html(product_data, user_name=user_name)
+    return HTMLResponse(content=html_content)
+
+
+# ---------------------------------------------------------------------------
 # Static frontend serving
 # ---------------------------------------------------------------------------
 @app.get("/")
 def serve_frontend():
     return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+
+
+@app.get("/admin")
+def serve_admin():
+    return FileResponse(os.path.join(FRONTEND_DIR, "admin.html"))
 
 
 # Serve any other static assets (css/js) if added later

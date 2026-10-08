@@ -1,0 +1,114 @@
+{
+  "catalog": [
+    {
+      "category": "Cosmetics & Personal Care",
+      "keywords": ["cosmetics", "lipstick", "skin cream", "shampoo", "sunscreen", "kajal", "beauty products", "makeup"],
+      "is_numbers": ["IS 4707 (Part 1):2020", "IS 4707 (Part 2):2020", "IS 6608:2004", "IS 14318:2020"],
+      "standard_title": "Classification and Safety Criteria for Raw Materials and Finished Cosmetic Formulations",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark) / CDSCO Cosmetics Registration",
+      "scope": "Regulates permissible colorants, preservatives, and limits heavy metals (lead, arsenic, mercury) in cosmetics.",
+      "key_clauses": "IS 4707-1 (Prohibited raw materials), IS 4707-2 (Permitted colorants and UV filters)",
+      "portal_url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/knowyourstandards/indian_standards/isdetails"
+    },
+    {
+      "category": "Steel & Reinforcing Bars (TMT)",
+      "keywords": ["steel", "tmt bar", "rebar", "iron rod", "structural steel", "reinforcement"],
+      "is_numbers": ["IS 1786:2008", "IS 2062:2011"],
+      "standard_title": "High Strength Deformed Steel Bars and Wires for Concrete Reinforcement",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Mandatory QCO)",
+      "scope": "Regulates yield strength, elongation, chemical composition (carbon, sulfur, phosphorus), and bend testing for construction steel.",
+      "key_clauses": "Clause 8.1 (Chemical Composition limits), Clause 9.2 (Tensile and Proof Stress Testing)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Cement & Building Materials",
+      "keywords": ["cement", "opc", "ppc", "portland cement", "concrete", "mortar"],
+      "is_numbers": ["IS 269:2015", "IS 1489 (Part 1):2015", "IS 455:2015"],
+      "standard_title": "Ordinary Portland Cement (33, 43, 53 Grade) & Portland Pozzolana Cement",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Mandatory Scheme)",
+      "scope": "Specifies compressive strength (at 3, 7, and 28 days), setting time, soundness, and chemical composition.",
+      "key_clauses": "Clause 6 (Compressive Strength testing), Clause 7 (Soundness by Le Chatelier method)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Automotive Protective Helmets",
+      "keywords": ["helmet", "two wheeler helmet", "bike helmet", "motorcycle helmet", "headgear"],
+      "is_numbers": ["IS 4151:2020"],
+      "standard_title": "Protective Helmets for Two-Wheeler Riders - Specification",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Mandatory QCO)",
+      "scope": "Mandatory for all two-wheeler helmets sold in India. Specifies maximum helmet weight (1.2 kg), impact absorption, and retention strap strength.",
+      "key_clauses": "Clause 9.1 (Impact Absorption test), Clause 9.2 (Rigidity test), Clause 9.3 (Retention system)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Footwear & Leather Products",
+      "keywords": ["footwear", "shoes", "leather shoes", "safety shoes", "boots", "chappal", "sandals"],
+      "is_numbers": ["IS 15844:2010", "IS 15298 (Part 2):2016", "IS 6721:1972"],
+      "standard_title": "Sports Footwear, Safety Footwear & General Purpose Shoes",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Footwear QCO 2023/2024)",
+      "scope": "Mandatory Quality Control Order for all footwear manufacturers and importers. Regulates sole bonding, tear strength, and chemical safety.",
+      "key_clauses": "Clause 5 (Upper and Outsole adhesion test), Clause 6 (Abrasion resistance)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Lithium-Ion Batteries & Cells",
+      "keywords": ["battery", "lithium battery", "li-ion", "cell", "ev battery", "mobile battery"],
+      "is_numbers": ["IS 16046 (Part 1):2018", "IS 16046 (Part 2):2018", "IS 16893:2018"],
+      "standard_title": "Secondary Cells and Batteries Containing Alkaline or Other Non-Acid Electrolytes (Portable applications & EVs)",
+      "mandatory_qco": true,
+      "scheme": "Compulsory Registration Scheme (CRS - Scheme II)",
+      "scope": "Mandatory safety tests: overcharge, external short-circuit, thermal abuse, drop test, and crush resistance.",
+      "key_clauses": "Clause 7.2 (Thermal Abuse test at 130°C), Clause 7.3 (External Short-Circuit test)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/scheme-ii-registration-scheme/?lang=en"
+    },
+    {
+      "category": "Solar Photovoltaic (PV) Modules",
+      "keywords": ["solar", "solar panel", "pv module", "solar cell", "photovoltaic"],
+      "is_numbers": ["IS 14286:2010", "IS/IEC 61730 (Part 1 & 2):2004"],
+      "standard_title": "Crystalline Silicon Terrestrial Photovoltaic (PV) Modules - Design Qualification and Safety",
+      "mandatory_qco": true,
+      "scheme": "Compulsory Registration Scheme (CRS - Scheme II under MNRE)",
+      "scope": "Specifies outdoor exposure, damp-heat testing, electrical insulation, and hail impact resistance for solar panels.",
+      "key_clauses": "Clause 10.11 (Damp Heat test: 85°C/85% RH for 1000h), Clause 10.17 (Hail test)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/scheme-ii-registration-scheme/?lang=en"
+    },
+    {
+      "category": "Domestic Pressure Cookers",
+      "keywords": ["pressure cooker", "cooker", "kitchen cooker", "cookware"],
+      "is_numbers": ["IS 2347:2017"],
+      "standard_title": "Domestic Pressure Cookers - Specification",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Mandatory QCO)",
+      "scope": "Specifies bursting pressure, safety valve release mechanism (must operate before 2x working pressure), and container material safety.",
+      "key_clauses": "Clause 8.1 (Operating pressure test), Clause 8.2 (Safety relief pressure test), Clause 8.3 (Hydraulic proof test)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Electric Cables & Wires",
+      "keywords": ["cable", "wire", "electric wire", "copper wire", "pvc cable", "armoured cable"],
+      "is_numbers": ["IS 694:2010", "IS 1554 (Part 1):1988", "IS 7098:1988"],
+      "standard_title": "PVC Insulated Cables for Working Voltages up to and Including 1100 V",
+      "mandatory_qco": true,
+      "scheme": "Scheme I (ISI Mark - Mandatory Scheme)",
+      "scope": "Specifies conductor resistance, insulation thickness, spark testing, flammability, and high-voltage withstand.",
+      "key_clauses": "Clause 9.1 (Conductor resistance), Clause 9.3 (Spark test during extrusion)",
+      "portal_url": "https://www.bis.gov.in/product-certification/products-under-compulsory-certification/"
+    },
+    {
+      "category": "Medical Face Masks & PPE",
+      "keywords": ["mask", "face mask", "n95", "surgical mask", "ppe", "protective clothing"],
+      "is_numbers": ["IS 16289:2014", "IS 9473:2002"],
+      "standard_title": "Surgical Face Masks & Respiratory Protective Devices (Particulate Filters)",
+      "mandatory_qco": false,
+      "scheme": "Scheme I (ISI Mark - Voluntary/Public Health Procurement)",
+      "scope": "Specifies Bacterial Filtration Efficiency (BFE >= 95%), differential pressure (breathability), and splash resistance.",
+      "key_clauses": "Clause 5.2 (Bacterial Filtration Efficiency test), Clause 5.3 (Breathability Delta P)",
+      "portal_url": "https://www.services.bis.gov.in/php/BIS_2.0/bisconnect/knowyourstandards/indian_standards/isdetails"
+    }
+  ]
+}

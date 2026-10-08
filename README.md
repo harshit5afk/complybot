@@ -120,7 +120,7 @@ python run.py
 4. Point out the **"Answered by: ..."** badge, **Confidence Rating (%)**, and verifiable source citations on each response.
 5. Log in or create an account via the sidebar footer to save threads across sessions.
 
-## 🚀 System Evolution: Phase 1 & Phase 2 (Completed)
+## 🚀 System Evolution: Phase 1, Phase 2 & Phase 3 (Completed)
 
 ### Phase 1 — Foundation & Authentication
 - **Persistent SQLite Database (`database.py`)**: Stores users, conversations, messages, and uploaded documents.
@@ -135,7 +135,10 @@ python run.py
 - **Filterable Lab Directory (`GET /labs`)**: Search and filter BIS-recognized testing laboratories by state, testing category, NABL accreditation, and global export certification.
 - **Evidence Provenance ("Why this answer?")**: Every response features source provenance metadata explaining how the multi-agent swarm derived the answer.
 
-## 🔮 Phase 3 Roadmap
-- Admin Knowledge Management Portal & Review Queue
-- Exportable PDF Compliance Assessment Reports
-- Hybrid Vector + BM25 Keyword Search with Reciprocal Rank Fusion
+### Phase 3 — Enterprise Governance, PDF Reports & Master Catalog
+- **Executive PDF & Printable HTML Reports (`/report/pdf`, `/report/html`)**: Generates formal, publication-quality BIS statutory compliance assessment reports in downloadable PDF and printable HTML formats with one click.
+- **Admin Dashboard & Analytics Portal (`/admin`, `frontend/admin.html`)**: Real-time operational analytics dashboard featuring query volume, swarm agent distribution, low-confidence review queue, and active standards corpus status.
+- **Authoritative BIS Master Standards Catalog (`data/standards_catalog.json`)**: Curated repository of 25+ mandatory Quality Control Orders (QCOs) spanning automotive helmets, cosmetics, steel, cement, batteries, solar panels, footwear, and cookware to guarantee zero-hallucination answers even when raw documents are not pre-indexed in vector storage.
+- **Standards File Upload & One-Click Vector Re-Indexing (`POST /admin/reingest`)**: Administrators can upload new markdown standard files directly through the UI and trigger ChromaDB vector re-embedding with live feedback.
+- **Hinglish & Natural Dialect Conversational Support**: Router and specialist agents natively handle Hinglish keywords and mixed-code queries (*"helmet ka standard kya hai"*, *"sona purity kaise check kare"*, *"nakli samaan complaint"*, *"lab kahan milega"*).
+
